@@ -1,5 +1,5 @@
 [tools]
 go = "latest"
-java = "temurin-17"
+java = "temurin-21"
 node = "lts"
 python = "3.11"
