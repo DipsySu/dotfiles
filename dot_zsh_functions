@@ -1,0 +1,177 @@
+# =================================================================
+# Custom Functions / 自定义函数
+# =================================================================
+
+# =================================================================
+# 5. 自定义 AWS 函数 (带凭证输出版)
+# =================================================================
+
+# --- 辅助函数：打印凭证 (带颜色高亮) ---
+function print_aws_creds() {
+    echo ""
+    echo -e "\033[0;33m🔑 Current Session Credentials:\033[0m"
+    echo "---------------------------------------------------"
+    echo -e "AWS_ACCESS_KEY_ID     : \033[0;32m$AWS_ACCESS_KEY_ID\033[0m"
+    echo -e "AWS_SECRET_ACCESS_KEY : \033[0;32m$AWS_SECRET_ACCESS_KEY\033[0m"
+    # 如果有 Session Token 也打印出来，没有就不打印
+    if [ -n "$AWS_SESSION_TOKEN" ]; then
+        echo -e "AWS_SESSION_TOKEN     : \033[0;32m$AWS_SESSION_TOKEN\033[0m"
+    fi
+    echo "---------------------------------------------------"
+}
+
+function aws-cn() {
+    if ! aws sts get-caller-identity --profile aws-cn > /dev/null 2>&1; then
+        echo "⚠️  SSO Token expired. Launching browser login..."
+        aws sso login --profile aws-cn
+    fi
+
+    export AWS_REGION="cn-north-1"
+    export AWS_DEFAULT_REGION="cn-north-1"
+    export AWS_PROFILE="aws-cn"
+
+    echo "✅ Switched to aws-cn environment!"
+    
+    # 导出环境变量
+    eval $(aws configure export-credentials --profile aws-cn --format env)
+    # 打印凭证
+    print_aws_creds
+}
+
+function aws-sg() {
+    export AWS_REGION="ap-southeast-1"
+    export AWS_PROFILE="aws-sg"
+    
+    if [ ! -d "$HOME/.aws-sg" ]; then
+        mkdir -p "$HOME/.aws-sg"
+    fi
+    export USER_HOME="$HOME/.aws-sg"
+
+    echo "Fetching CodeArtifact token..."
+    export CODEARTIFACT_AUTH_TOKEN=$(aws --profile aws-sg codeartifact get-authorization-token --domain nautilus --query authorizationToken --output text)
+    
+    echo "✅ Switched to aws-sg environment!"
+
+    # 导出环境变量
+    eval $(aws configure export-credentials --profile aws-sg --format env)
+    # 打印凭证
+    print_aws_creds
+}
+
+# --- 家居自动化脚本开始 ---
+
+# 定义 Tailscale 路径变量 (Windows 路径)
+export TAILSCALE_EXE="/mnt/c/Program Files/Tailscale/tailscale.exe"
+
+# 内部私有函数：检查并确保 Tailscale 已连接
+_ensure_tailscale() {
+    echo "--- 检查 Tailscale 状态 ---"
+    
+    # 1. 检查 tailscale.exe 是否能联通后台
+    local status_output=$("$TAILSCALE_EXE" status 2>&1)
+    
+    if echo "$status_output" | grep -q "Tailscale is starting"; then
+        echo "⏳ Tailscale 正在启动中，请稍候..."
+        sleep 3
+    fi
+
+    # 2. 如果状态依然是 NoState 或 NeedsLogin，说明需要 Windows 端干预
+    if echo "$status_output" | grep -q "NoState\|Stopped"; then
+        echo "❌ [Error] Windows 端的 Tailscale 未启动或已退出。"
+        echo "💡 请手动点击 Windows 任务栏右下角的 Tailscale 图标进行 Connect。"
+        return 1
+    fi
+
+    echo "✅ [Connected] Tailscale 隧道就绪。"
+    return 0
+}
+
+# 1. 唤醒命令
+wake_home() {
+    echo "--- 远程唤醒流程开始 [$(date '+%H:%M:%S')] ---"
+    
+    # 1. 检查网络
+    if _ensure_tailscale; then
+        echo "   [$(date '+%H:%M:%S')] 🔗 网络就绪，准备发起 SSH 请求..."
+        
+        # 2. 执行唤醒 (增加 -q 减少无用提示，增加 -t 强制分配终端以实时回显)
+        # 注意：这里我们直接调用 ssh，它会实时显示远程脚本里的 echo 内容
+        ssh -t home-pc "/root/wake_pc.sh"
+        
+        # 3. 唤醒后的自动检测 (新增功能：自动帮你 Ping)
+        echo "   [$(date '+%H:%M:%S')] ⏱️ 脚本执行完毕，开始持续探测电脑状态..."
+        echo "   (按 Ctrl+C 可以提前结束探测)"
+        
+        # 尝试 Ping 你的电脑 IP，成功则退出 (假设你电脑固定 IP 是 192.168.100.10)
+        # 逻辑：在 iStoreOS 上代为 ping 电脑
+        ssh home-pc "ping -c 10 -i 1 192.168.50.197" | grep --line-buffered "from"
+        
+        echo "--- 唤醒流程结束 [$(date '+%H:%M:%S')] ---"
+    fi
+}
+
+# 2. 纯 SSH 命令
+ssh_istore() {
+    if _ensure_tailscale; then
+        echo "正在连接 iStoreOS 终端..."
+        ssh home-pc
+    fi
+}
+
+sleep_home() {
+    echo "--- 远程休眠流程开始 [$(date '+%H:%M:%S')] ---"
+    # 内部检查 Tailscale 是否已由你手动开启
+    if _ensure_tailscale; then
+        echo "   [$(date '+%H:%M:%S')] 🔗 正在通过 iStoreOS 下达休眠指令..."
+        ssh -t home-pc "/root/sleep_pc.sh"
+        echo "--- 流程结束 ---"
+    fi
+}
+
+# 查看家中心 PC 的实时硬件状态
+check_home() {
+    # 确保网络连接
+    if _ensure_tailscale; then
+        echo "📊 正在从 iStoreOS 抓取 PC 实时数据..."
+        # 使用 -t 保持彩色输出，-q 隐藏 SSH 登录提示
+        ssh -t home-pc "/root/check_pc.sh"
+    fi
+}
+
+# --- 家居自动化脚本结束 ---
+
+function gpullall() {
+    find . -maxdepth 1 -type d -print0 | xargs -0 -I {} sh -c 'cd "{}" && [ -d .git ] && echo "Pulling {}" && git pull'
+}
+function gscan() {
+    echo ""
+    # 打印表头
+    printf "\033[1;30m%-35s %-25s %s\033[0m\n" "📦 REPOSITORY" "🌿 BRANCH" "📊 STATUS"
+    echo "------------------------------------------------------------------------"
+
+    # 遍历当前目录下所有子文件夹
+    for d in ./*/; do
+        # 只要是 git 仓库
+        if [ -d "$d/.git" ]; then
+            repo_name=$(basename "$d")
+
+            # 获取当前分支名
+            branch=$(git -C "$d" branch --show-current)
+
+            # 获取当前状态 (是否有未提交的修改)
+            # --porcelain 输出空字符串表示干净，否则表示有修改
+            if [ -z "$(git -C "$d" status --porcelain)" ]; then
+                status_icon="✅ Clean"
+                status_color="\033[32m" # 绿色
+            else
+                status_icon="⚠️  Modified"
+                status_color="\033[31m" # 红色
+            fi
+
+            # 打印格式化的一行
+            # %-35s 表示左对齐占35个字符宽度
+            printf "\033[1;36m%-35s\033[0m \033[33m%-25s\033[0m ${status_color}%s\033[0m\n" "$repo_name" "$branch" "$status_icon"
+        fi
+    done
+    echo ""
+}
