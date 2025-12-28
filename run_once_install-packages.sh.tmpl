@@ -1,12 +1,18 @@
 #!/bin/bash
 set -e
 
-# 1. Install Homebrew (Conditional)
-{{ if eq .chezmoi.os "darwin" }}
+# 1. Install Homebrew (Cross-platform)
 if ! command -v brew &> /dev/null; then
+    echo "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    
+    # Linux-specific post-install setup (Add to PATH temporarily)
+    {{ if eq .chezmoi.os "linux" }}
+    if [ -d "/home/linuxbrew/.linuxbrew/bin" ]; then
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    fi
+    {{ end }}
 fi
-{{ end }}
 
 # 2. Bundle Install
 if command -v brew &> /dev/null; then

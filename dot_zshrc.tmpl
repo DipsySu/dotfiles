@@ -136,11 +136,17 @@ eval "$(/home/dipsy/.local/bin/mise activate zsh)"
 # Amazon Q post block. Keep at the bottom of this file.
 [[ -f "${HOME}/.local/share/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/.local/share/amazon-q/shell/zshrc.post.zsh"
 
+# =================================================================
+# FZF (Fuzzy Finder)
+# =================================================================
+if command -v fzf &> /dev/null; then
+    source <(fzf --zsh)
+fi
+
 # Zoxide (Smarter cd)
 if command -v zoxide &> /dev/null; then
     eval "$(zoxide init zsh)"
-
-     alias cd="z"
+    alias cd="z"
 fi
 
 # --- Eza Aliases (Must be at the very end to override OMZ) ---
