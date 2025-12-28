@@ -1,0 +1,6 @@
+[user]
+	name = Dipsy
+	email = suqiankun@johnsonfitness.com
+[core]
+	autocrlf = input
+	filemode = false

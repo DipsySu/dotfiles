@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+
+# 1. Install Homebrew (Conditional)
+{{ if eq .chezmoi.os "darwin" }}
+if ! command -v brew &> /dev/null; then
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+{{ end }}
+
+# 2. Bundle Install
+if command -v brew &> /dev/null; then
+    brew bundle --file={{ .chezmoi.sourceDir }}/Brewfile
+fi
+
+# 3. Mise Install
+if command -v mise &> /dev/null; then
+    mise install
+fi
