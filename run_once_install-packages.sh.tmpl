@@ -157,7 +157,7 @@ fi
 # 使用 --unattended 避免安装过程中卡住询问是否切换 shell
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
     log_info "安装 Oh My Zsh..."
-    if sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; then
+    if KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; then
         log_info "Oh My Zsh 安装完成"
     else
         log_error "Oh My Zsh 安装失败"
