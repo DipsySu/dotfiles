@@ -18,10 +18,13 @@
 *(假设你已经将此仓库托管在 GitHub 上)*
 
 ```bash
-# 1. 初始化并应用配置
-sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply <你的GitHub用户名>
+# 1. 初始化并应用配置 (推荐方式，避免权限问题)
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply <你的GitHub用户名>
 
-# 2. (如果 Shell 没自动刷新) 重载配置
+# 2. 确保 ~/.local/bin 在 PATH 中
+export PATH="$HOME/.local/bin:$PATH"
+
+# 3. (如果 Shell 没自动刷新) 重载配置
 source ~/.zshrc
 ```
 
@@ -30,6 +33,45 @@ source ~/.zshrc
 2.  拉取你的 Dotfiles 仓库。
 3.  将配置文件映射到 `~` 目录。
 4.  自动运行 `run_once_install-packages.sh` 脚本，安装 Homebrew, Brew 软件, 和 Mise 运行时。
+
+### 步骤 B: 配置模板变量 (可选)
+
+首次运行时，Chezmoi 会提示你输入各种配置值（Git用户名、邮箱、工具版本等）。
+
+如果你想跳过交互式配置，可以：
+
+1. **使用预设配置文件**:
+   ```bash
+   # 复制示例配置
+   cp ~/.local/share/chezmoi/.chezmoi.yaml.example ~/.config/chezmoi/chezmoi.yaml
+   # 编辑配置文件
+   nano ~/.config/chezmoi/chezmoi.yaml
+   ```
+
+2. **重新配置**:
+   ```bash
+   # 删除已保存的配置，重新交互式配置
+   rm ~/.config/chezmoi/chezmoi.yaml
+   chezmoi init --apply
+   ```
+
+### 常见安装问题
+
+**Q: chezmoi 命令找不到？**
+- 确保使用了 `-b $HOME/.local/bin` 参数
+- 检查 `~/.local/bin` 是否在 PATH 中：
+  ```bash
+  echo $PATH | grep -o "$HOME/.local/bin"
+  # 如果没有输出，添加到 PATH
+  export PATH="$HOME/.local/bin:$PATH"
+  ```
+
+**Q: 权限被拒绝？**
+- 使用 `-b $HOME/.local/bin` 而不是系统目录
+- 确保 `~/.local/bin` 目录存在：
+  ```bash
+  mkdir -p $HOME/.local/bin
+  ```
 
 ---
 
@@ -107,10 +149,57 @@ chezmoi update
 
 ---
 
-## 6. 常见问题 (FAQ)
+## 7. 模板变量管理
+
+### 配置文件位置
+- **交互式配置**: `.chezmoi.toml.tmpl` - 首次运行时会提示输入各种配置值
+- **静态配置**: `~/.config/chezmoi/chezmoi.yaml` - 直接设置配置值，跳过交互
+
+### 支持的模板变量
+
+| 变量类别 | 变量名 | 默认值 | 说明 |
+|---------|--------|--------|------|
+| **Git** | `name` | "Dipsy" | Git 用户名 |
+| | `email` | "your.email@example.com" | Git 邮箱 |
+| **工具版本** | `versions.go` | "latest" | Go 版本 |
+| | `versions.java` | "temurin-21" | Java 版本 |
+| | `versions.node` | "lts" | Node.js 版本 |
+| | `versions.python` | "3.11" | Python 版本 |
+| **AWS** | `aws.cn_region` | "cn-north-1" | AWS 中国区域 |
+| | `aws.sg_region` | "ap-southeast-1" | AWS 新加坡区域 |
+| | `aws.codeartifact_domain` | "nautilus" | CodeArtifact 域名 |
+| **家居自动化** | `home.tailscale_path` | "/mnt/c/Program Files/Tailscale/tailscale.exe" | Tailscale 路径 |
+| | `home.ssh_host` | "home-pc" | SSH 主机别名 |
+| | `home.pc_ip` | "192.168.50.197" | 家用电脑 IP |
+| **Shell** | `shell.enable_starship` | true | 启用 Starship 提示符 |
+| | `shell.enable_zoxide` | true | 启用 Zoxide (智能 cd) |
+| | `shell.enable_eza` | true | 启用 Eza (更好的 ls) |
+
+### 修改配置
+```bash
+# 查看当前配置
+chezmoi data
+
+# 编辑配置
+chezmoi edit-config
+
+# 重新应用配置
+chezmoi apply
+```
+
+## 8. 常见问题 (FAQ)
 
 *   **Q: `chezmoi` 命令找不到？**
-    *   A: 确保 `~/.local/bin` 在你的 `PATH` 中。如果刚安装完，尝试重启终端。
+    *   A: 确保使用了 `-b $HOME/.local/bin` 参数安装，并且 `~/.local/bin` 在你的 `PATH` 中。如果刚安装完，尝试重启终端或运行 `export PATH="$HOME/.local/bin:$PATH"`。
+
+*   **Q: 安装时提示权限被拒绝？**
+    *   A: 使用 `-b $HOME/.local/bin` 参数将 chezmoi 安装到用户目录，避免需要 sudo 权限。
 
 *   **Q: Mise 切换版本没生效？**
     *   A: 检查是否开启了 `mise activate zsh` (在 `.zshrc` 中)。运行 `mise doctor` 查看诊断信息。
+
+*   **Q: 如何在不同机器上使用不同的配置？**
+    *   A: 编辑 `~/.config/chezmoi/chezmoi.yaml` 文件，或者删除该文件重新运行 `chezmoi init` 进行交互式配置。
+
+*   **Q: 如何备份当前配置？**
+    *   A: 安装脚本会自动备份到 `~/.dotfiles_backup_<时间戳>` 目录。你也可以手动备份重要配置文件。

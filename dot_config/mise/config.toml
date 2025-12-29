@@ -1,8 +1,0 @@
-[tools]
-go = "latest"
-java = "temurin-21"
-node = "lts"
-python = "3.11"
-
-"npm:@anthropic-ai/claude-code" = "latest"
-"npm:@google/gemini-cli" = "latest"

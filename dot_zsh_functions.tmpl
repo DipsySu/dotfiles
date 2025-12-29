@@ -26,8 +26,8 @@ function aws-cn() {
         aws sso login --profile aws-cn
     fi
 
-    export AWS_REGION="cn-north-1"
-    export AWS_DEFAULT_REGION="cn-north-1"
+    export AWS_REGION="{{ .aws.cn_region }}"
+    export AWS_DEFAULT_REGION="{{ .aws.cn_region }}"
     export AWS_PROFILE="aws-cn"
 
     echo "✅ Switched to aws-cn environment!"
@@ -39,7 +39,7 @@ function aws-cn() {
 }
 
 function aws-sg() {
-    export AWS_REGION="ap-southeast-1"
+    export AWS_REGION="{{ .aws.sg_region }}"
     export AWS_PROFILE="aws-sg"
     
     if [ ! -d "$HOME/.aws-sg" ]; then
@@ -48,7 +48,7 @@ function aws-sg() {
     export USER_HOME="$HOME/.aws-sg"
 
     echo "Fetching CodeArtifact token..."
-    export CODEARTIFACT_AUTH_TOKEN=$(aws --profile aws-sg codeartifact get-authorization-token --domain nautilus --query authorizationToken --output text)
+    export CODEARTIFACT_AUTH_TOKEN=$(aws --profile aws-sg codeartifact get-authorization-token --domain {{ .aws.codeartifact_domain }} --query authorizationToken --output text)
     
     echo "✅ Switched to aws-sg environment!"
 
@@ -60,8 +60,18 @@ function aws-sg() {
 
 # --- 家居自动化脚本开始 ---
 
-# 定义 Tailscale 路径变量 (Windows 路径)
-export TAILSCALE_EXE="/mnt/c/Program Files/Tailscale/tailscale.exe"
+# 定义 Tailscale 路径变量 (支持多平台)
+{{- if .home.tailscale_path }}
+export TAILSCALE_EXE="{{ .home.tailscale_path }}"
+{{- else }}
+# 自动检测 Tailscale 路径
+for ts_path in "/mnt/c/Program Files/Tailscale/tailscale.exe" "/usr/bin/tailscale" "/usr/local/bin/tailscale"; do
+    if [ -f "$ts_path" ]; then
+        export TAILSCALE_EXE="$ts_path"
+        break
+    fi
+done
+{{- end }}
 
 # 内部私有函数：检查并确保 Tailscale 已连接
 _ensure_tailscale() {
@@ -96,15 +106,15 @@ wake_home() {
         
         # 2. 执行唤醒 (增加 -q 减少无用提示，增加 -t 强制分配终端以实时回显)
         # 注意：这里我们直接调用 ssh，它会实时显示远程脚本里的 echo 内容
-        ssh -t home-pc "/root/wake_pc.sh"
+        ssh -t {{ .home.ssh_host }} "/root/wake_pc.sh"
         
         # 3. 唤醒后的自动检测 (新增功能：自动帮你 Ping)
         echo "   [$(date '+%H:%M:%S')] ⏱️ 脚本执行完毕，开始持续探测电脑状态..."
         echo "   (按 Ctrl+C 可以提前结束探测)"
         
-        # 尝试 Ping 你的电脑 IP，成功则退出 (假设你电脑固定 IP 是 192.168.100.10)
+        # 尝试 Ping 你的电脑 IP，成功则退出
         # 逻辑：在 iStoreOS 上代为 ping 电脑
-        ssh home-pc "ping -c 10 -i 1 192.168.50.197" | grep --line-buffered "from"
+        ssh {{ .home.ssh_host }} "ping -c 10 -i 1 {{ .home.pc_ip }}" | grep --line-buffered "from"
         
         echo "--- 唤醒流程结束 [$(date '+%H:%M:%S')] ---"
     fi
@@ -114,7 +124,7 @@ wake_home() {
 ssh_istore() {
     if _ensure_tailscale; then
         echo "正在连接 iStoreOS 终端..."
-        ssh home-pc
+        ssh {{ .home.ssh_host }}
     fi
 }
 
@@ -123,7 +133,7 @@ sleep_home() {
     # 内部检查 Tailscale 是否已由你手动开启
     if _ensure_tailscale; then
         echo "   [$(date '+%H:%M:%S')] 🔗 正在通过 iStoreOS 下达休眠指令..."
-        ssh -t home-pc "/root/sleep_pc.sh"
+        ssh -t {{ .home.ssh_host }} "/root/sleep_pc.sh"
         echo "--- 流程结束 ---"
     fi
 }
@@ -134,7 +144,7 @@ check_home() {
     if _ensure_tailscale; then
         echo "📊 正在从 iStoreOS 抓取 PC 实时数据..."
         # 使用 -t 保持彩色输出，-q 隐藏 SSH 登录提示
-        ssh -t home-pc "/root/check_pc.sh"
+        ssh -t {{ .home.ssh_host }} "/root/check_pc.sh"
     fi
 }
 

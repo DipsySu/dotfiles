@@ -1,0 +1,32 @@
+# Chezmoi Configuration Template
+# This file contains template variables for your dotfiles
+
+[data]
+    # Git Configuration
+    name = "{{ promptStringOnce . "git.name" "Git username" "Dipsy" }}"
+    email = "{{ promptStringOnce . "git.email" "Git email" "your.email@example.com" }}"
+    
+    # Development Tools Versions
+    [data.versions]
+        go = "{{ promptStringOnce . "versions.go" "Go version" "latest" }}"
+        java = "{{ promptStringOnce . "versions.java" "Java version" "temurin-21" }}"
+        node = "{{ promptStringOnce . "versions.node" "Node.js version" "lts" }}"
+        python = "{{ promptStringOnce . "versions.python" "Python version" "3.11" }}"
+    
+    # AWS Configuration
+    [data.aws]
+        cn_region = "{{ promptStringOnce . "aws.cn_region" "AWS China region" "cn-north-1" }}"
+        sg_region = "{{ promptStringOnce . "aws.sg_region" "AWS Singapore region" "ap-southeast-1" }}"
+        codeartifact_domain = "{{ promptStringOnce . "aws.codeartifact_domain" "CodeArtifact domain" "nautilus" }}"
+    
+    # Home Automation (Tailscale & SSH)
+    [data.home]
+        tailscale_path = "{{ promptStringOnce . "home.tailscale_path" "Tailscale executable path" "/mnt/c/Program Files/Tailscale/tailscale.exe" }}"
+        ssh_host = "{{ promptStringOnce . "home.ssh_host" "Home SSH host alias" "home-pc" }}"
+        pc_ip = "{{ promptStringOnce . "home.pc_ip" "Home PC IP address" "192.168.50.197" }}"
+    
+    # Shell Configuration
+    [data.shell]
+        enable_starship = {{ promptBoolOnce . "shell.enable_starship" "Enable Starship prompt" true }}
+        enable_zoxide = {{ promptBoolOnce . "shell.enable_zoxide" "Enable Zoxide (smart cd)" true }}
+        enable_eza = {{ promptBoolOnce . "shell.enable_eza" "Enable Eza (better ls)" true }}

@@ -1,5 +1,11 @@
 # Amazon Q pre block. Keep at the top of this file.
 [[ -f "${HOME}/.local/share/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/.local/share/amazon-q/shell/zshrc.pre.zsh"
+
+# Ensure ~/.local/bin is in PATH (for chezmoi and other local tools)
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
@@ -88,9 +94,11 @@ fi
 source $ZSH/oh-my-zsh.sh
 
 # Starship Prompt
+{{- if .shell.enable_starship }}
 if command -v starship &> /dev/null; then
     eval "$(starship init zsh)"
 fi
+{{- end }}
 
 # User configuration
 
@@ -159,12 +167,15 @@ if command -v fzf &> /dev/null; then
 fi
 
 # Zoxide (Smarter cd)
+{{- if .shell.enable_zoxide }}
 if command -v zoxide &> /dev/null; then
     eval "$(zoxide init zsh)"
     alias cd="z"
 fi
+{{- end }}
 
 # --- Eza Aliases (Must be at the very end to override OMZ) ---
+{{- if .shell.enable_eza }}
 if command -v eza &> /dev/null; then
     unalias ls ll la lt 2>/dev/null
     alias ls='eza --icons --group-directories-first'
@@ -173,3 +184,4 @@ if command -v eza &> /dev/null; then
     alias lt='eza --tree --icons'
     alias cat='bat'
 fi
+{{- end }}
