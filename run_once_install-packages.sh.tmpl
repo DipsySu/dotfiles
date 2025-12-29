@@ -195,4 +195,7 @@ else
 fi
 
 log_info "Dotfiles 初始化完成！"
-log_info "请运行 'source ~/.zshrc' 或重启终端来应用新配置"
+log_info "请关闭并重新打开终端，以进入全新的 Zsh 环境。"
+{{ if eq .chezmoi.os "linux" }}
+log_info "注意：如果重启后依然是 Bash，请尝试注销或重启 WSL (wsl --shutdown)。"
+{{ end }}
