@@ -122,6 +122,26 @@ else
     log_warn "Mise 未找到，跳过运行时安装"
 fi
 
+# 3.5. Ensure Zsh is installed (Pre-requisite for Oh My Zsh)
+if ! command -v zsh &> /dev/null; then
+    log_info "Zsh 未找到，正在安装..."
+    {{ if eq .chezmoi.os "linux" }}
+        # 尝试使用系统包管理器安装
+        if command -v apt-get &> /dev/null; then
+            log_info "检测到 apt-get，请求 sudo 权限安装 zsh..."
+            sudo apt-get update && sudo apt-get install -y zsh
+        else
+            log_warn "未找到 apt-get，尝试使用 Homebrew 安装 zsh..."
+            brew install zsh || log_error "Zsh 安装失败，请手动安装！"
+        fi
+    {{ else if eq .chezmoi.os "darwin" }}
+        log_info "macOS: 使用 Homebrew 安装 zsh..."
+        brew install zsh
+    {{ end }}
+else
+    log_info "Zsh 已安装"
+fi
+
 # 4. 安装 Oh My Zsh (如果不存在)
 # 使用 --unattended 避免安装过程中卡住询问是否切换 shell
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
