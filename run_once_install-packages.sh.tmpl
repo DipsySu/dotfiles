@@ -126,20 +126,31 @@ fi
 if ! command -v zsh &> /dev/null; then
     log_info "Zsh 未找到，正在安装..."
     {{ if eq .chezmoi.os "linux" }}
-        # 尝试使用系统包管理器安装
         if command -v apt-get &> /dev/null; then
-            log_info "检测到 apt-get，请求 sudo 权限安装 zsh..."
             sudo apt-get update && sudo apt-get install -y zsh
         else
-            log_warn "未找到 apt-get，尝试使用 Homebrew 安装 zsh..."
-            brew install zsh || log_error "Zsh 安装失败，请手动安装！"
+            brew install zsh
         fi
     {{ else if eq .chezmoi.os "darwin" }}
-        log_info "macOS: 使用 Homebrew 安装 zsh..."
         brew install zsh
     {{ end }}
+    
+    # 设置默认 Shell
+    log_info "正在将 Zsh 设置为默认 Shell..."
+    if [ "$SHELL" != "$(which zsh)" ]; then
+        {{ if eq .chezmoi.os "linux" }}
+            sudo chsh -s "$(which zsh)" "$USER"
+        {{ else if eq .chezmoi.os "darwin" }}
+            chsh -s "$(which zsh)"
+        {{ end }}
+    fi
 else
     log_info "Zsh 已安装"
+    # 如果已经是 zsh 但不是默认，也尝试设置一下
+    if [[ "$SHELL" != *"/zsh" ]]; then
+        log_info "尝试更新默认 Shell 为 Zsh..."
+        sudo chsh -s "$(which zsh)" "$USER" || true
+    fi
 fi
 
 # 4. 安装 Oh My Zsh (如果不存在)

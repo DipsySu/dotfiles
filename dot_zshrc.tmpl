@@ -143,9 +143,16 @@ export NVM_DIR="$HOME/.nvm"
 
 {{ if eq .chezmoi.os "darwin" }}
 # macOS specific
-eval "$(/opt/homebrew/bin/brew shellenv)"
+if [ -f "/opt/homebrew/bin/brew" ]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f "/usr/local/bin/brew" ]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
 {{ else if eq .chezmoi.os "linux" }}
-# WSL specific
+# Linux / WSL specific
+if [ -f "/home/linuxbrew/.linuxbrew/bin/brew" ]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+fi
 alias open="explorer.exe"
 {{ end }}
 
