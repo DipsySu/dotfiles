@@ -14,64 +14,66 @@
 
 在全新的 macOS 或 WSL (Ubuntu) 上，只需执行以下步骤：
 
-### 步骤 A: 一键安装
-*(假设你已经将此仓库托管在 GitHub 上)*
+### 步骤 A: 一键安装 (推荐方式)
 
 ```bash
-# 1. 初始化并应用配置 (推荐方式，避免权限问题)
-sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply <你的GitHub用户名>
+# 方法一：使用一键安装脚本 (自动处理 PATH)
+curl -fsSL https://raw.githubusercontent.com/DipsySu/dotfiles/main/quick-install.sh | bash
 
-# 2. 确保 ~/.local/bin 在 PATH 中
-export PATH="$HOME/.local/bin:$PATH"
-
-# 3. (如果 Shell 没自动刷新) 重载配置
+# 方法二：手动安装 (需要手动设置 PATH)
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply DipsySu
+export PATH="$HOME/.local/bin:$PATH"  # 临时设置，重启终端后生效
 source ~/.zshrc
 ```
 
+**推荐使用方法一**，它会自动处理所有 PATH 设置问题。
+
 该命令会自动完成以下工作：
-1.  安装 `chezmoi` 二进制文件。
-2.  拉取你的 Dotfiles 仓库。
-3.  将配置文件映射到 `~` 目录。
-4.  自动运行 `run_once_install-packages.sh` 脚本，安装 Homebrew, Brew 软件, 和 Mise 运行时。
+1. 安装 `chezmoi` 二进制文件到 `~/.local/bin`
+2. 拉取你的 Dotfiles 仓库
+3. 提示你输入配置变量（Git用户名、邮箱等）
+4. 将配置文件映射到 `~` 目录
+5. **自动运行 `run_once_install-packages.sh` 脚本**，安装：
+   - Homebrew 包管理器
+   - 开发工具 (starship, eza, zoxide 等)
+   - Oh My Zsh 和插件
+   - 运行时环境 (Node.js, Python, Go, Java)
 
-### 步骤 B: 配置模板变量 (可选)
+### 步骤 B: 跳过交互式配置 (可选)
 
-首次运行时，Chezmoi 会提示你输入各种配置值（Git用户名、邮箱、工具版本等）。
+如果你想跳过交互式配置，可以预先创建配置文件：
 
-如果你想跳过交互式配置，可以：
+```bash
+# 1. 创建配置目录
+mkdir -p ~/.config/chezmoi
 
-1. **使用预设配置文件**:
-   ```bash
-   # 复制示例配置
-   cp ~/.local/share/chezmoi/.chezmoi.yaml.example ~/.config/chezmoi/chezmoi.yaml
-   # 编辑配置文件
-   nano ~/.config/chezmoi/chezmoi.yaml
-   ```
+# 2. 创建静态配置文件
+cat > ~/.config/chezmoi/chezmoi.yaml << 'EOF'
+data:
+  name: "Dipsy"
+  email: "suqiankun@johnsonfitness.com"
+  versions:
+    go: "latest"
+    java: "temurin-21"
+    node: "lts"
+    python: "3.11"
+  aws:
+    cn_region: "cn-north-1"
+    sg_region: "ap-southeast-1"
+    codeartifact_domain: "nautilus"
+  home:
+    tailscale_path: "/mnt/c/Program Files/Tailscale/tailscale.exe"
+    ssh_host: "home-pc"
+    pc_ip: "192.168.50.197"
+  shell:
+    enable_starship: true
+    enable_zoxide: true
+    enable_eza: true
+EOF
 
-2. **重新配置**:
-   ```bash
-   # 删除已保存的配置，重新交互式配置
-   rm ~/.config/chezmoi/chezmoi.yaml
-   chezmoi init --apply
-   ```
-
-### 常见安装问题
-
-**Q: chezmoi 命令找不到？**
-- 确保使用了 `-b $HOME/.local/bin` 参数
-- 检查 `~/.local/bin` 是否在 PATH 中：
-  ```bash
-  echo $PATH | grep -o "$HOME/.local/bin"
-  # 如果没有输出，添加到 PATH
-  export PATH="$HOME/.local/bin:$PATH"
-  ```
-
-**Q: 权限被拒绝？**
-- 使用 `-b $HOME/.local/bin` 而不是系统目录
-- 确保 `~/.local/bin` 目录存在：
-  ```bash
-  mkdir -p $HOME/.local/bin
-  ```
+# 3. 然后运行 chezmoi
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply DipsySu
+```
 
 ---
 
@@ -175,16 +177,32 @@ chezmoi update
 | | `shell.enable_zoxide` | true | 启用 Zoxide (智能 cd) |
 | | `shell.enable_eza` | true | 启用 Eza (更好的 ls) |
 
-### 修改配置
+## 🔧 PATH 自动管理
+
+### 为什么不需要手动设置 PATH？
+
+1. **永久设置**: `.zshrc` 模板中已包含 PATH 设置代码
+2. **自动检查**: 每次启动 shell 时自动检查并添加 `~/.local/bin`
+3. **一次设置**: 安装完成后重启终端，PATH 永久生效
+
+### PATH 设置代码 (在 .zshrc 中)
 ```bash
-# 查看当前配置
-chezmoi data
+# 自动添加 ~/.local/bin 到 PATH
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
+```
 
-# 编辑配置
-chezmoi edit-config
+### 如果 PATH 有问题
+```bash
+# 检查 PATH
+echo $PATH | grep -o "$HOME/.local/bin"
 
-# 重新应用配置
-chezmoi apply
+# 手动重新加载配置
+source ~/.zshrc
+
+# 或重启终端
+exec zsh
 ```
 
 ## 8. 常见问题 (FAQ)

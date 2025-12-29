@@ -1,0 +1,51 @@
+# =================================================================
+# Dotfiles Profile Configuration
+# 复制此文件并根据你的需求修改配置
+# =================================================================
+
+# Git 配置
+git:
+  name: "Dipsy"                              # 你的 Git 用户名
+  email: "suqiankun@johnsonfitness.com"      # 你的 Git 邮箱
+
+# 开发工具版本配置
+versions:
+  go: "latest"          # Go 版本 (latest, 1.21, 1.20 等)
+  java: "temurin-21"    # Java 版本 (temurin-21, temurin-17, temurin-11 等)
+  node: "lts"           # Node.js 版本 (lts, latest, 18, 20 等)
+  python: "3.11"        # Python 版本 (3.11, 3.10, 3.9 等)
+
+# AWS 配置
+aws:
+  cn_region: "cn-north-1"           # AWS 中国区域
+  sg_region: "ap-southeast-1"       # AWS 新加坡区域
+  codeartifact_domain: "nautilus"   # CodeArtifact 域名
+
+# 家居自动化配置 (如果你使用 Tailscale 远程控制)
+home:
+  tailscale_path: "/mnt/c/Program Files/Tailscale/tailscale.exe"  # WSL 中的 Tailscale 路径
+  # tailscale_path: "/usr/local/bin/tailscale"                   # macOS/Linux 中的 Tailscale 路径
+  ssh_host: "home-pc"               # SSH 主机别名
+  pc_ip: "192.168.50.197"          # 家用电脑 IP 地址
+
+# Shell 功能开关
+shell:
+  enable_starship: true    # 启用 Starship 提示符 (推荐)
+  enable_zoxide: true      # 启用 Zoxide 智能 cd (推荐)
+  enable_eza: true         # 启用 Eza 更好的 ls (推荐)
+
+# 额外的 Homebrew 软件包 (可选)
+extra_packages:
+  - "htop"          # 系统监控
+  - "tree"          # 目录树显示
+  - "jq"            # JSON 处理工具
+  - "wget"          # 下载工具
+  # - "docker"      # Docker (macOS)
+  # - "kubectl"     # Kubernetes CLI
+
+# 额外的 NPM 全局包 (可选)
+extra_npm_packages:
+  - "@anthropic-ai/claude-code"   # Claude Code CLI
+  - "@google/gemini-cli"          # Gemini CLI
+  # - "typescript"                # TypeScript
+  # - "nodemon"                   # Node.js 开发工具

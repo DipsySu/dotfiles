@@ -1,0 +1,28 @@
+#!/bin/bash
+# 在安装其他软件之前，确保 PATH 设置正确
+
+# 确保 ~/.local/bin 目录存在
+mkdir -p "$HOME/.local/bin"
+
+# 临时添加到当前会话的 PATH (用于安装过程)
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    export PATH="$HOME/.local/bin:$PATH"
+    echo "✅ 已添加 ~/.local/bin 到当前会话的 PATH"
+fi
+
+# 确保 ~/.local/bin 在 shell 配置中 (永久设置)
+shell_config=""
+if [ -n "$ZSH_VERSION" ]; then
+    shell_config="$HOME/.zshrc"
+elif [ -n "$BASH_VERSION" ]; then
+    shell_config="$HOME/.bashrc"
+fi
+
+if [ -n "$shell_config" ] && [ -f "$shell_config" ]; then
+    if ! grep -q '$HOME/.local/bin' "$shell_config"; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$shell_config"
+        echo "✅ 已添加 ~/.local/bin 到 $shell_config"
+    fi
+fi
+
+echo "🔧 PATH 设置完成"
