@@ -1,7 +1,7 @@
 brew "git"
 brew "chezmoi"
 # brew "mise"
-brew "starship"
+# brew "starship"
 brew "zoxide"
 brew "fzf"
 brew "eza"
