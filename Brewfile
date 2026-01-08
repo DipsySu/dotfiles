@@ -12,7 +12,7 @@ brew "fd"
 # macOS Only
 if OS.mac?
   brew "cocoapods"
-  cask "android-studio
+  cask "android-studio"
   cask "visual-studio-code"
   cask "iterm2"
   cask "docker"
