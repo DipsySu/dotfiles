@@ -1,8 +1,44 @@
+# =================================================================
+# Mise Configuration (Managed by Chezmoi)
+# =================================================================
+
+# 1. 工具版本定义 (来自 dotfiles 里的 profile.yaml 变量)
 [tools]
 go = "{{ .versions.go }}"
 java = "{{ .versions.java }}"
 node = "{{ .versions.node }}"
 python = "{{ .versions.python }}"
+flutter = "3.35.3"  # 你刚才指定的 Flutter 版本
 
+# 全局安装的 CLI 工具
 "npm:@anthropic-ai/claude-code" = "latest"
 "npm:@google/gemini-cli" = "latest"
+
+# =================================================================
+# 2. Mise 自身下载加速设置 (解决 mise install 下载慢的问题)
+# =================================================================
+[settings]
+# Node.js 下载镜像 (npmmirror)
+node_mirror = "https://npmmirror.com/dist/"
+# Python 下载镜像 (npmmirror)
+python_mirror = "https://npmmirror.com/mirrors/python/"
+# Go 下载代理 (七牛云)
+go_proxy = "https://goproxy.cn,direct"
+
+# =================================================================
+# 3. 环境变量注入 (解决工具运行时拉包慢的问题)
+# =================================================================
+[env]
+# NPM 包安装源 (加速 npm install)
+npm_config_registry = "https://registry.npmmirror.com"
+
+# Go 模块代理 (加速 go mod tidy)
+GOPROXY = "https://goproxy.cn,direct"
+
+# Rust/Cargo 更新源 (中科大镜像)
+RUSTUP_DIST_SERVER = "https://mirrors.ustc.edu.cn/rust-static"
+RUSTUP_UPDATE_ROOT = "https://mirrors.ustc.edu.cn/rust-static/rustup"
+
+# Flutter 镜像 (清华/Google CN 镜像)
+PUB_HOSTED_URL = "https://pub.flutter-io.cn"
+FLUTTER_STORAGE_BASE_URL = "https://storage.flutter-io.cn"
