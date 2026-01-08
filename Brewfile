@@ -1,6 +1,6 @@
 brew "git"
 brew "chezmoi"
-brew "mise"
+# brew "mise"
 brew "starship"
 brew "zoxide"
 brew "fzf"
@@ -11,6 +11,8 @@ brew "fd"
 
 # macOS Only
 if OS.mac?
+  brew "cocoapods"
+  cask "android-studio
   cask "visual-studio-code"
   cask "iterm2"
   cask "docker"
