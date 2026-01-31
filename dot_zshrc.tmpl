@@ -140,6 +140,8 @@ export NVM_DIR="$HOME/.nvm"
 # Load custom functions / 加载自定义函数
 [[ -f ~/.zsh_functions ]] && source ~/.zsh_functions
 
+# Load custom aliases / 加载自定义别名
+[[ -f ~/.zsh_aliases ]] && source ~/.zsh_aliases
 
 {{ if eq .chezmoi.os "darwin" }}
 # macOS specific
