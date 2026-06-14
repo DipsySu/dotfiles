@@ -16,7 +16,7 @@
 ### 新 MacBook Air / Apple Silicon 一键安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/DipsySu/dotfiles/main/quick-install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/DipsySu/dotfiles/master/quick-install.sh | bash
 ```
 
 这个脚本会：

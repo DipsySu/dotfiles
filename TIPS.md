@@ -19,7 +19,7 @@
 
 ```bash
 # 方法一：使用一键安装脚本 (自动处理 PATH)
-curl -fsSL https://raw.githubusercontent.com/DipsySu/dotfiles/main/quick-install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/DipsySu/dotfiles/master/quick-install.sh | bash
 
 # 方法二：手动安装 (需要手动设置 PATH)
 sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply DipsySu
