@@ -27,7 +27,8 @@ if OS.mac?
   cask "google-chrome"
   cask "iterm2"
   cask "monitorcontrol"
-  cask "orbstack"
+  # Optional Docker Desktop alternative. Install when a project needs Docker.
+  # cask "orbstack"
   cask "raycast"
   cask "rectangle"
   cask "stats"
