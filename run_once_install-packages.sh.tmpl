@@ -101,7 +101,7 @@ fi
 # 2. Bundle Install
 if command -v brew &> /dev/null; then
     log_info "安装 Homebrew 软件包..."
-    if brew bundle --file="{{ .chezmoi.sourceDir }}/Brewfile"; then
+    if brew bundle --file="{{ .chezmoi.sourceDir }}/dot_Brewfile"; then
         log_info "Homebrew 软件包安装完成"
     else
         log_warn "部分 Homebrew 软件包安装失败，但继续执行"
