@@ -1,4 +1,10 @@
-# Ensure .zshrc is sourced for login shells
-if [ -f "$HOME/.zshrc" ]; then
-    source "$HOME/.zshrc"
-fi
+# Kiro CLI pre block. Keep at the top of this file.
+[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zprofile.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zprofile.pre.zsh"
+
+# NOTE: do NOT source ~/.zshrc here.
+# zsh automatically sources .zshrc for every interactive shell, including
+# login+interactive shells launched by Terminal.app, iTerm2, and VS Code.
+# Sourcing it manually makes the shell init twice and slows down startup.
+
+# Kiro CLI post block. Keep at the bottom of this file.
+[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zprofile.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zprofile.post.zsh"

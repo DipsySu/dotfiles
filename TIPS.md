@@ -4,9 +4,10 @@
 
 ## 1. 核心架构
 
-*   **配置管理**: [Chezmoi](https://www.chezmoi.io/) - 负责同步 `.zshrc`, `.gitconfig` 以及 Mise 的全局配置。
+*   **配置管理**: [Chezmoi](https://www.chezmoi.io/) - 负责同步 `.zshrc`, `.gitconfig`、Git hooks 以及 Mise 的全局配置。
 *   **运行时管理**: [Mise](https://mise.jdx.dev/) - 替代 nvm, pyenv, rbenv。负责安装 Node, Python, Java, Go。
 *   **包管理**: Homebrew - 负责安装 CLI 工具 (git, fzf, starship 等)。
+*   **Shell 插件**: Zinit - 替代完整 Oh My Zsh，启动更轻。
 
 ---
 
@@ -36,8 +37,9 @@ source ~/.zshrc
 5. **自动运行 `run_once_install-packages.sh` 脚本**，安装：
    - Homebrew 包管理器
    - 开发工具 (starship, eza, zoxide 等)
-   - Oh My Zsh 和插件
+   - Zinit 和 zsh 插件
    - 运行时环境 (Node.js, Python, Go, Java)
+   - Codex / Claude Code / Gemini CLI
 
 ### 步骤 B: 跳过交互式配置 (可选)
 
@@ -57,12 +59,13 @@ data:
     java: "temurin-21"
     node: "lts"
     python: "3.11"
+    flutter: "3.35.3"
   aws:
     cn_region: "cn-north-1"
     sg_region: "ap-southeast-1"
     codeartifact_domain: "nautilus"
   home:
-    tailscale_path: "/mnt/c/Program Files/Tailscale/tailscale.exe"
+    tailscale_path: ""
     ssh_host: "home-pc"
     pc_ip: "192.168.50.197"
   shell:
@@ -167,10 +170,11 @@ chezmoi update
 | | `versions.java` | "temurin-21" | Java 版本 |
 | | `versions.node` | "lts" | Node.js 版本 |
 | | `versions.python` | "3.11" | Python 版本 |
+| | `versions.flutter` | "3.35.3" | Flutter 版本 |
 | **AWS** | `aws.cn_region` | "cn-north-1" | AWS 中国区域 |
 | | `aws.sg_region` | "ap-southeast-1" | AWS 新加坡区域 |
 | | `aws.codeartifact_domain` | "nautilus" | CodeArtifact 域名 |
-| **家居自动化** | `home.tailscale_path` | "/mnt/c/Program Files/Tailscale/tailscale.exe" | Tailscale 路径 |
+| **家居自动化** | `home.tailscale_path` | "" | Tailscale 路径，留空自动检测 |
 | | `home.ssh_host` | "home-pc" | SSH 主机别名 |
 | | `home.pc_ip` | "192.168.50.197" | 家用电脑 IP |
 | **Shell** | `shell.enable_starship` | true | 启用 Starship 提示符 |
@@ -187,10 +191,9 @@ chezmoi update
 
 ### PATH 设置代码 (在 .zshrc 中)
 ```bash
-# 自动添加 ~/.local/bin 到 PATH
-if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
-    export PATH="$HOME/.local/bin:$PATH"
-fi
+# zsh path array automatically de-duplicates entries.
+typeset -U path
+path=("$HOME/.local/bin" $path)
 ```
 
 ### 如果 PATH 有问题

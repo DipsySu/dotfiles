@@ -12,7 +12,9 @@ function print_aws_creds() {
     echo -e "\033[0;33m🔑 Current Session Credentials:\033[0m"
     echo "---------------------------------------------------"
     echo -e "AWS_ACCESS_KEY_ID     : \033[0;32m$AWS_ACCESS_KEY_ID\033[0m"
-    echo -e "AWS_SECRET_ACCESS_KEY : \033[0;32m$AWS_SECRET_ACCESS_KEY\033[0m"
+    if [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
+        echo -e "AWS_SECRET_ACCESS_KEY : \033[0;32m<redacted>\033[0m"
+    fi
     # 如果有 Session Token 也打印出来，没有就不打印
     if [ -n "$AWS_SESSION_TOKEN" ]; then
         echo -e "AWS_SESSION_TOKEN     : \033[0;32m$AWS_SESSION_TOKEN\033[0m"
@@ -60,12 +62,19 @@ function aws-sg() {
 
 # --- 家居自动化脚本开始 ---
 
-# 定义 Tailscale 路径变量 (支持多平台)
+# Tailscale CLI path. Leave home.tailscale_path empty to auto-detect across
+# WSL, macOS Intel, and Apple Silicon machines.
 {{- if .home.tailscale_path }}
 export TAILSCALE_EXE="{{ .home.tailscale_path }}"
 {{- else }}
 # 自动检测 Tailscale 路径
-for ts_path in "/mnt/c/Program Files/Tailscale/tailscale.exe" "/usr/bin/tailscale" "/usr/local/bin/tailscale"; do
+for ts_path in \
+    "/Applications/Tailscale.app/Contents/MacOS/Tailscale" \
+    "/mnt/c/Program Files/Tailscale/tailscale.exe" \
+    "/opt/homebrew/bin/tailscale" \
+    "/usr/local/bin/tailscale" \
+    "/usr/bin/tailscale"
+do
     if [ -f "$ts_path" ]; then
         export TAILSCALE_EXE="$ts_path"
         break
@@ -76,6 +85,11 @@ done
 # 内部私有函数：检查并确保 Tailscale 已连接
 _ensure_tailscale() {
     echo "--- 检查 Tailscale 状态 ---"
+
+    if [ -z "$TAILSCALE_EXE" ] || [ ! -x "$TAILSCALE_EXE" ]; then
+        echo "❌ [Error] 未找到 Tailscale CLI。"
+        return 1
+    fi
     
     # 1. 检查 tailscale.exe 是否能联通后台
     local status_output=$("$TAILSCALE_EXE" status 2>&1)
@@ -184,4 +198,33 @@ function gscan() {
         fi
     done
     echo ""
+}
+
+# =================================================================
+# macOS light diagnostics
+# =================================================================
+mac_check() {
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "macOS system snapshot"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    sw_vers
+    echo "arch: $(uname -m)"
+    echo "uptime: $(uptime)"
+    echo ""
+
+    echo "Disk:"
+    df -h /
+    echo ""
+
+    echo "Memory:"
+    memory_pressure | sed -n '1,12p'
+    echo ""
+
+    echo "Top CPU:"
+    ps -axo pid,pcpu,pmem,command -r | head -8
+    echo ""
+
+    echo "Thermal:"
+    pmset -g thermlog 2>/dev/null | sed -n '1,12p'
 }

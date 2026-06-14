@@ -1,11 +1,11 @@
 # 🚀 Dotfiles - 一键配置开发环境
 
-这是一个跨平台的 dotfiles 配置，支持 WSL、Linux 和 macOS，使用 Chezmoi + Homebrew + Mise 的现代化工具链。
+这是一个跨平台的 dotfiles 配置，支持 WSL、Linux、Intel Mac 和 Apple Silicon Mac，使用 Chezmoi + Homebrew + Mise 的现代化工具链。
 
 ## ✨ 特性
 
 - 🔧 **一键安装**: 单条命令完成整个开发环境配置
-- 🌍 **跨平台支持**: WSL、Linux、macOS 完美兼容
+- 🌍 **跨平台支持**: WSL、Linux、Intel Mac、Apple Silicon Mac 兼容
 - 📦 **现代工具链**: Starship、Zoxide、Eza、FZF 等现代 CLI 工具
 - 🎯 **智能管理**: 自动安装 Node.js、Python、Go、Java 等运行时
 - 🔄 **版本控制**: 使用 Chezmoi 管理配置文件版本
@@ -13,19 +13,19 @@
 
 ## 🚀 快速开始
 
-### 一键安装 (推荐)
+### 新 MacBook Air / Apple Silicon 一键安装
 
 ```bash
-# 使用一键安装脚本 (自动处理所有 PATH 问题)
 curl -fsSL https://raw.githubusercontent.com/DipsySu/dotfiles/main/quick-install.sh | bash
 ```
 
 这个脚本会：
+1. 检查 Xcode Command Line Tools
 1. 自动安装 Chezmoi 到 `~/.local/bin`
 2. 从 GitHub 拉取配置
 3. 交互式配置个人信息
-4. **自动设置永久 PATH**
-5. 自动运行安装脚本，安装所有开发工具
+4. 自动识别 Apple Silicon 的 `/opt/homebrew` 或 Intel Mac 的 `/usr/local`
+5. 自动运行安装脚本，安装开发工具、CLI、mise 运行时和 zsh 插件管理器
 
 ### 手动安装 (如果你想更多控制)
 
@@ -74,7 +74,7 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply DipsySu
 - **Chezmoi**: 配置文件管理
 - **Homebrew**: 包管理器
 - **Mise**: 运行时版本管理 (替代 nvm, pyenv 等)
-- **Oh My Zsh**: Zsh 框架
+- **Zinit**: 轻量 Zsh 插件管理器
 
 ### CLI 工具
 - **Starship**: 现代化提示符
@@ -92,8 +92,8 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply DipsySu
 - **Java**: Temurin 21
 
 ### Zsh 插件
-- **zsh-autosuggestions**: 命令自动建议
-- **zsh-syntax-highlighting**: 语法高亮
+- **fast-syntax-highlighting**: 语法高亮
+- **zsh-completions**: 补全增强
 
 ## ⚙️ 配置说明
 
@@ -111,6 +111,7 @@ versions:
   java: "temurin-21"
   node: "lts"
   python: "3.11"
+  flutter: "3.35.3"
 
 # Shell 功能开关
 shell:
@@ -124,7 +125,16 @@ shell:
 安装完成后，以下路径会自动添加到 PATH：
 - `$HOME/.local/bin` - Chezmoi 和其他本地工具
 - `/home/linuxbrew/.linuxbrew/bin` - Homebrew (Linux)
-- `/opt/homebrew/bin` - Homebrew (macOS)
+- `/opt/homebrew/bin` - Homebrew (Apple Silicon macOS)
+- `/usr/local/bin` - Homebrew (Intel macOS)
+
+### Apple Silicon / MacBook Air 注意事项
+
+- Homebrew 默认在 `/opt/homebrew`，配置会自动检测，不要手写 `/usr/local`。
+- `codex`、`claude`、`gemini` 等 npm CLI 由 mise 管理，跟随全局 Node LTS。
+- Android SDK 会优先使用 `~/Library/Android/sdk`，再回退到 Homebrew 的 `android-commandlinetools` 路径。
+- Docker 方案默认使用 OrbStack，比较适合 MacBook Air；如果项目必须使用 Docker Desktop，可以自己在 Brewfile 里替换。
+- 外接 4K 显示器时可按需安装 BetterDisplay，默认只安装 MonitorControl、Rectangle、Stats。
 
 ## 🔧 常用命令
 
@@ -147,6 +157,10 @@ chezmoi update
 ```bash
 # 查看已安装版本
 mise ls
+
+# 验证 AI coding CLI
+codex --version
+claude --version
 
 # 安装新版本
 mise install node@20

@@ -13,6 +13,7 @@ data:
     java: "temurin-21"
     node: "lts"
     python: "3.11"
+    flutter: "3.35.3"
   
   # AWS Configuration
   aws:
@@ -22,8 +23,7 @@ data:
   
   # Home Automation (Tailscale & SSH)
   home:
-    tailscale_path: "/mnt/c/Program Files/Tailscale/tailscale.exe"  # WSL path
-    # tailscale_path: "/usr/local/bin/tailscale"  # macOS/Linux path
+    tailscale_path: ""  # blank = auto-detect WSL/macOS/Linux path
     ssh_host: "home-pc"
     pc_ip: "192.168.50.197"
   

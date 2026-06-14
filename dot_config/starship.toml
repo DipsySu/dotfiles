@@ -30,3 +30,33 @@ symbol = "🐹 "
 
 [aws]
 symbol = "☁️  "
+
+[docker_context]
+symbol = "🐳 "
+# 只在含 Dockerfile / docker-compose / .dockerignore 的目录显示
+only_with_files = true
+detect_files = ["docker-compose.yml", "docker-compose.yaml", "Dockerfile", ".dockerignore"]
+detect_folders = []
+
+[kubernetes]
+disabled = false
+symbol = "☸  "
+format = '[$symbol$context( \($namespace\))]($style) '
+# 只在 k8s 项目目录显示，避免每个 prompt 都读 kubeconfig
+detect_files = ["k8s.yaml", "kustomization.yaml", "Chart.yaml", "skaffold.yaml"]
+detect_folders = ["k8s", "kubernetes", ".helm"]
+detect_extensions = []
+
+[direnv]
+disabled = false
+symbol = "📁 "
+
+[cmd_duration]
+min_time = 2000
+format = "took [$duration](bold yellow) "
+
+[time]
+disabled = false
+format = '[$time]($style) '
+style = "bold cyan"
+time_format = "%H:%M:%S"

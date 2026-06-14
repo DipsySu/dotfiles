@@ -14,6 +14,7 @@ versions:
   java: "temurin-21"    # Java 版本 (temurin-21, temurin-17, temurin-11 等)
   node: "lts"           # Node.js 版本 (lts, latest, 18, 20 等)
   python: "3.11"        # Python 版本 (3.11, 3.10, 3.9 等)
+  flutter: "3.35.3"     # Flutter 版本
 
 # AWS 配置
 aws:
@@ -23,8 +24,7 @@ aws:
 
 # 家居自动化配置 (如果你使用 Tailscale 远程控制)
 home:
-  tailscale_path: "/mnt/c/Program Files/Tailscale/tailscale.exe"  # WSL 中的 Tailscale 路径
-  # tailscale_path: "/usr/local/bin/tailscale"                   # macOS/Linux 中的 Tailscale 路径
+  tailscale_path: ""                    # 留空自动检测 WSL/macOS/Linux Tailscale 路径
   ssh_host: "home-pc"               # SSH 主机别名
   pc_ip: "192.168.50.197"          # 家用电脑 IP 地址
 

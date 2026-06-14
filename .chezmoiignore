@@ -1,0 +1,8 @@
+README.md
+TIPS.md
+profile.yaml
+quick-install.sh
+test-chezmoi.sh
+.vscode/
+code run_once_after_cleanup-dock.sh.tmpl
+code run_once_after_cleanup-dock.sh

@@ -48,7 +48,7 @@ backup_configs() {
     backup_dir="$HOME/.dotfiles_backup_$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$backup_dir"
     
-    for config in .zshrc .gitconfig .config/mise; do
+    for config in .zshrc .zprofile .zshenv .gitconfig .git-hooks .config/mise .config/starship.toml .zsh_aliases .zsh_functions .zsh; do
         if [ -e "$HOME/$config" ]; then
             cp -r "$HOME/$config" "$backup_dir/" 2>/dev/null || true
             log_info "已备份 $config 到 $backup_dir"
@@ -122,7 +122,7 @@ else
     log_warn "Mise 未找到，跳过运行时安装"
 fi
 
-# 3.5. Ensure Zsh is installed (Pre-requisite for Oh My Zsh)
+# 3.5. Ensure Zsh is installed
 if ! command -v zsh &> /dev/null; then
     log_info "Zsh 未找到，正在安装..."
     {{ if eq .chezmoi.os "linux" }}
@@ -146,52 +146,34 @@ if ! command -v zsh &> /dev/null; then
     fi
 else
     log_info "Zsh 已安装"
-    # 如果已经是 zsh 但不是默认，也尝试设置一下
+    # 如果已经安装 zsh 但不是默认，也尝试设置一下。macOS 新版默认就是 zsh。
     if [[ "$SHELL" != *"/zsh" ]]; then
         log_info "尝试更新默认 Shell 为 Zsh..."
+        {{ if eq .chezmoi.os "darwin" }}
+        chsh -s "$(which zsh)" || true
+        {{ else }}
         sudo chsh -s "$(which zsh)" "$USER" || true
+        {{ end }}
     fi
 fi
 
-# 4. 安装 Oh My Zsh (如果不存在)
-# 使用 --unattended 避免安装过程中卡住询问是否切换 shell
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    log_info "安装 Oh My Zsh..."
-    if KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; then
-        log_info "Oh My Zsh 安装完成"
-    else
-        log_error "Oh My Zsh 安装失败"
-        exit 1
-    fi
+# 4. Zinit plugin manager
+if command -v brew >/dev/null 2>&1 && brew list zinit >/dev/null 2>&1; then
+    log_info "Zinit 已通过 Homebrew 安装"
+elif [ -f "${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git/zinit.zsh" ]; then
+    log_info "Zinit 已存在于 ~/.local/share"
 else
-    log_info "Oh My Zsh 已安装"
+    log_warn "Zinit 尚不可用；首次打开 zsh 时 ~/.zshrc 会尝试自动克隆"
 fi
 
-# 5. 安装 Zsh 插件 (自动克隆到 custom 目录)
-ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
-
-# zsh-autosuggestions
-if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
-    log_info "安装 zsh-autosuggestions..."
-    if git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM}/plugins/zsh-autosuggestions; then
-        log_info "zsh-autosuggestions 安装完成"
-    else
-        log_warn "zsh-autosuggestions 安装失败"
-    fi
-else
-    log_info "zsh-autosuggestions 已安装"
+# 5. Git LFS
+if command -v git-lfs >/dev/null 2>&1; then
+    git lfs install --skip-smudge >/dev/null 2>&1 || true
 fi
 
-# zsh-syntax-highlighting
-if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
-    log_info "安装 zsh-syntax-highlighting..."
-    if git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM}/plugins/zsh-syntax-highlighting; then
-        log_info "zsh-syntax-highlighting 安装完成"
-    else
-        log_warn "zsh-syntax-highlighting 安装失败"
-    fi
-else
-    log_info "zsh-syntax-highlighting 已安装"
+# 6. Mise shims
+if command -v mise >/dev/null 2>&1; then
+    mise reshim >/dev/null 2>&1 || true
 fi
 
 log_info "Dotfiles 初始化完成！"

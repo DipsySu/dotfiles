@@ -12,6 +12,7 @@ go = "{{ promptStringOnce . "versions.go" "Go version" "latest" }}"
 java = "{{ promptStringOnce . "versions.java" "Java version" "temurin-21" }}"
 node = "{{ promptStringOnce . "versions.node" "Node.js version" "lts" }}"
 python = "{{ promptStringOnce . "versions.python" "Python version" "3.11" }}"
+flutter = "{{ promptStringOnce . "versions.flutter" "Flutter version" "3.35.3" }}"
 
 # AWS Configuration
 [data.aws]
@@ -21,7 +22,7 @@ codeartifact_domain = "{{ promptStringOnce . "aws.codeartifact_domain" "CodeArti
 
 # Home Automation (Tailscale & SSH)
 [data.home]
-tailscale_path = "{{ promptStringOnce . "home.tailscale_path" "Tailscale executable path" "/mnt/c/Program Files/Tailscale/tailscale.exe" }}"
+tailscale_path = "{{ promptStringOnce . "home.tailscale_path" "Tailscale executable path (blank for auto-detect)" "" }}"
 ssh_host = "{{ promptStringOnce . "home.ssh_host" "Home SSH host alias" "home-pc" }}"
 pc_ip = "{{ promptStringOnce . "home.pc_ip" "Home PC IP address" "192.168.50.197" }}"
 

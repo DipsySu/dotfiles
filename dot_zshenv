@@ -1,0 +1,2 @@
+# Keep zshenv tiny: it is sourced by every zsh invocation, including scripts.
+[[ -r "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
