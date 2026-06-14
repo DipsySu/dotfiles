@@ -133,7 +133,7 @@ shell:
 - Homebrew 默认在 `/opt/homebrew`，配置会自动检测，不要手写 `/usr/local`。
 - `codex`、`claude`、`gemini` 等 npm CLI 由 mise 管理，跟随全局 Node LTS。
 - Android SDK 会优先使用 `~/Library/Android/sdk`，再回退到 Homebrew 的 `android-commandlinetools` 路径。
-- Docker 方案默认使用 OrbStack，比较适合 MacBook Air；如果项目必须使用 Docker Desktop，可以自己在 Brewfile 里替换。
+- Docker/OrbStack 默认不安装；如果项目需要 Docker，再手动安装 OrbStack 或 Docker Desktop。
 - 外接 4K 显示器时可按需安装 BetterDisplay，默认只安装 MonitorControl、Rectangle、Stats。
 
 ## 🔧 常用命令
