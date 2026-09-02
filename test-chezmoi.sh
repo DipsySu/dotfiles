@@ -29,14 +29,30 @@ render ~/.zsh/help.zsh "$tmpdir/help.zsh"
 render ~/.gitconfig "$tmpdir/gitconfig"
 render ~/.git-hooks/commit-msg "$tmpdir/commit-msg"
 render ~/.config/mise/config.toml "$tmpdir/mise-config.toml"
+render ~/.zsh/yazi.zsh "$tmpdir/yazi.zsh"
+render ~/.zsh/ai-tools.zsh "$tmpdir/ai-tools.zsh"
+render ~/.zsh/jetbrains.zsh "$tmpdir/jetbrains.zsh"
+render ~/.config/yazi/keymap.toml "$tmpdir/yazi-keymap.toml"
 
 zsh -n "$tmpdir/zshrc"
 zsh -n "$tmpdir/zsh_functions"
 zsh -n "$tmpdir/zsh_aliases"
 zsh -n "$tmpdir/android.zsh"
 zsh -n "$tmpdir/help.zsh"
+zsh -n "$tmpdir/yazi.zsh"
+zsh -n "$tmpdir/ai-tools.zsh"
+zsh -n "$tmpdir/jetbrains.zsh"
 sh -n "$tmpdir/commit-msg"
 git config --file "$tmpdir/gitconfig" --list >/dev/null
-ruby -c "$source_dir/dot_Brewfile" >/dev/null
+if command -v ruby >/dev/null 2>&1; then
+    ruby -c "$source_dir/dot_Brewfile" >/dev/null
+else
+    echo "skip: ruby not found, Brewfile syntax not checked"
+fi
+if command -v python3 >/dev/null 2>&1; then
+    for f in "$tmpdir/mise-config.toml" "$tmpdir/yazi-keymap.toml"; do
+        python3 -c "import tomllib,sys; tomllib.load(open(sys.argv[1],'rb'))" "$f"
+    done
+fi
 
 echo "All checks passed."

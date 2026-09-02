@@ -18,9 +18,8 @@ versions:
 
 # AWS 配置
 aws:
-  cn_region: "cn-north-1"           # AWS 中国区域
-  sg_region: "ap-southeast-1"       # AWS 新加坡区域
-  codeartifact_domain: "nautilus"   # CodeArtifact 域名
+  codeartifact_domain: ""           # 只在 ~/.config/chezmoi/local.toml 里填
+  profiles: []                      # 见 TIPS.md「私有变量 local.toml」
 
 # 家居自动化配置 (如果你使用 Tailscale 远程控制)
 home:
@@ -38,18 +37,3 @@ shell:
   enable_zoxide: true      # 启用 Zoxide 智能 cd (推荐)
   enable_eza: true         # 启用 Eza 更好的 ls (推荐)
 
-# 额外的 Homebrew 软件包 (可选)
-extra_packages:
-  - "htop"          # 系统监控
-  - "tree"          # 目录树显示
-  - "jq"            # JSON 处理工具
-  - "wget"          # 下载工具
-  # - "docker"      # Docker (macOS)
-  # - "kubectl"     # Kubernetes CLI
-
-# 额外的 NPM 全局包 (可选)
-extra_npm_packages:
-  - "@anthropic-ai/claude-code"   # Claude Code CLI
-  - "@google/gemini-cli"          # Gemini CLI
-  # - "typescript"                # TypeScript
-  # - "nodemon"                   # Node.js 开发工具

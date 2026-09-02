@@ -42,6 +42,8 @@ source ~/.zshrc
 
 ### 跳过交互式配置
 
+推荐做法：把私有值写进 `~/.config/chezmoi/local.toml`（不进仓库），`chezmoi init` 会自动读取、不再提问，格式见 `TIPS.md`「私有变量 local.toml」。下面是另一种手写完整配置的方式：
+
 如果你想使用默认配置，可以预先创建配置文件：
 
 ```bash

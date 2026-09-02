@@ -61,9 +61,8 @@ data:
     python: "3.11"
     flutter: "3.35.3"
   aws:
-    cn_region: "cn-north-1"
-    sg_region: "ap-southeast-1"
-    codeartifact_domain: "nautilus"
+    codeartifact_domain: ""        # 只在 local.toml 里填
+    profiles: []                   # 见 TIPS.md「私有变量 local.toml」
   home:
     tailscale_path: ""
     ssh_host: "home-pc"
@@ -164,6 +163,41 @@ chezmoi update
 - **交互式配置**: `.chezmoi.toml.tmpl` - 首次运行时会提示输入各种配置值
 - **静态配置**: `~/.config/chezmoi/chezmoi.yaml` - 直接设置配置值，跳过交互
 
+### 私有变量 local.toml
+
+邮箱、AWS profile、家庭网络地址这类不想进仓库的值，放在 `~/.config/chezmoi/local.toml`（不进仓库）。
+`chezmoi init` 渲染配置时会先读它：文件里有的键直接用，没有的才交互提问。结构与生成的 `[data]` 完全一致：
+
+```toml
+name  = "Dipsy"
+email = "you@example.com"
+
+[aws]
+codeartifact_domain = "my-domain"
+
+[[aws.profiles]]
+name   = "aws-main"        # 函数名 = profile 名，例如 aws-main
+region = "us-east-1"
+sso    = true              # 切换前自动 aws sso login
+
+[[aws.profiles]]
+name         = "aws-artifacts"
+region       = "eu-west-1"
+codeartifact = true        # 切换时顺带取 CodeArtifact token
+
+[home]
+tailscale_path = ""        # 留空自动检测
+ssh_host = "home-pc"
+pc_ip    = "192.168.1.100"
+nas_ssh  = "user@192.168.1.2"
+nas_nfs  = "192.168.1.2:/volume1/share"
+
+[wsl]
+win_home = "/mnt/c/Users/<name>"   # macOS 留空
+```
+
+新机器流程：先把这个文件放到 `~/.config/chezmoi/local.toml`，再跑 `chezmoi init --apply DipsySu`，全程不会提问。
+
 ### 支持的模板变量
 
 | 变量类别 | 变量名 | 默认值 | 说明 |
@@ -175,9 +209,8 @@ chezmoi update
 | | `versions.node` | "lts" | Node.js 版本 |
 | | `versions.python` | "3.11" | Python 版本 |
 | | `versions.flutter` | "3.35.3" | Flutter 版本 |
-| **AWS** | `aws.cn_region` | "cn-north-1" | AWS 中国区域 |
-| | `aws.sg_region` | "ap-southeast-1" | AWS 新加坡区域 |
-| | `aws.codeartifact_domain` | "nautilus" | CodeArtifact 域名 |
+| **AWS** | `aws.codeartifact_domain` | "" | CodeArtifact 域名，只在 local.toml 里填 |
+| | `aws.profiles` | [] | profile 列表，每项 name / region / sso / codeartifact；为空不生成切换函数 |
 | **家居自动化** | `home.tailscale_path` | "" | Tailscale 路径，留空自动检测 |
 | | `home.ssh_host` | "home-pc" | SSH 主机别名 |
 | | `home.pc_ip` | "192.168.1.100" | 家用电脑 IP |

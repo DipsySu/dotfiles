@@ -2,63 +2,46 @@
 # Custom Functions / 自定义函数
 # =================================================================
 
+{{- $profiles := dig "aws" "profiles" (list) . }}
+{{- if $profiles }}
 # =================================================================
-# 5. 自定义 AWS 函数 (带凭证输出版)
+# AWS profile 切换：按 chezmoi 变量 aws.profiles 生成（见 ~/.config/chezmoi/local.toml）
 # =================================================================
-
-# --- 辅助函数：打印凭证 (带颜色高亮) ---
 function print_aws_creds() {
     echo ""
     echo -e "\033[0;33m🔑 Current Session Credentials:\033[0m"
     echo "---------------------------------------------------"
-    echo -e "AWS_ACCESS_KEY_ID     : \033[0;32m$AWS_ACCESS_KEY_ID\033[0m"
-    if [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
-        echo -e "AWS_SECRET_ACCESS_KEY : \033[0;32m<redacted>\033[0m"
-    fi
-    # 如果有 Session Token 也打印出来，没有就不打印
-    if [ -n "$AWS_SESSION_TOKEN" ]; then
-        echo -e "AWS_SESSION_TOKEN     : \033[0;32m$AWS_SESSION_TOKEN\033[0m"
-    fi
+    echo -e "AWS_ACCESS_KEY_ID     : \033[0;32m${AWS_ACCESS_KEY_ID:0:4}****${AWS_ACCESS_KEY_ID: -4}\033[0m"
+    [ -n "$AWS_SECRET_ACCESS_KEY" ] && echo -e "AWS_SECRET_ACCESS_KEY : \033[0;32m<redacted>\033[0m"
+    [ -n "$AWS_SESSION_TOKEN" ]     && echo -e "AWS_SESSION_TOKEN     : \033[0;32m<redacted, ${#AWS_SESSION_TOKEN} chars>\033[0m"
+    [ -n "$AWS_CREDENTIAL_EXPIRATION" ] && echo "AWS_CREDENTIAL_EXPIRATION : $AWS_CREDENTIAL_EXPIRATION"
     echo "---------------------------------------------------"
 }
+{{- range $p := $profiles }}
 
-function aws-cn() {
-    if ! aws sts get-caller-identity --profile aws-cn > /dev/null 2>&1; then
-        echo "⚠️  SSO Token expired. Launching browser login..."
-        aws sso login --profile aws-cn
+# 切到 {{ $p.name }}（{{ $p.region }}）
+function {{ $p.name }}() {
+{{- if dig "sso" false $p }}
+    if ! aws sts get-caller-identity --profile {{ $p.name }} > /dev/null 2>&1; then
+        echo "⚠️  SSO token 已过期，打开浏览器登录..."
+        aws sso login --profile {{ $p.name }} || return 1
     fi
-
-    export AWS_REGION="{{ .aws.cn_region }}"
-    export AWS_DEFAULT_REGION="{{ .aws.cn_region }}"
-    export AWS_PROFILE="aws-cn"
-
-    echo "✅ Switched to aws-cn environment!"
-    
-    # 导出环境变量
-    eval $(aws configure export-credentials --profile aws-cn --format env)
-    # 打印凭证
-    print_aws_creds
-}
-
-function aws-sg() {
-    export AWS_REGION="{{ .aws.sg_region }}"
-    export AWS_PROFILE="aws-sg"
-    
-    if [ ! -d "$HOME/.aws-sg" ]; then
-        mkdir -p "$HOME/.aws-sg"
-    fi
-    export USER_HOME="$HOME/.aws-sg"
-
+{{- end }}
+    export AWS_PROFILE="{{ $p.name }}"
+    export AWS_REGION="{{ $p.region }}"
+    export AWS_DEFAULT_REGION="{{ $p.region }}"
+{{- if dig "codeartifact" false $p }}
+    mkdir -p "$HOME/.{{ $p.name }}"
+    export USER_HOME="$HOME/.{{ $p.name }}"
     echo "Fetching CodeArtifact token..."
-    export CODEARTIFACT_AUTH_TOKEN=$(aws --profile aws-sg codeartifact get-authorization-token --domain {{ .aws.codeartifact_domain }} --query authorizationToken --output text)
-    
-    echo "✅ Switched to aws-sg environment!"
-
-    # 导出环境变量
-    eval $(aws configure export-credentials --profile aws-sg --format env)
-    # 打印凭证
+    export CODEARTIFACT_AUTH_TOKEN=$(aws --profile {{ $p.name }} codeartifact get-authorization-token --domain {{ dig "aws" "codeartifact_domain" "" $ }} --query authorizationToken --output text)
+{{- end }}
+    echo "✅ Switched to {{ $p.name }} ({{ $p.region }})"
+    eval "$(aws configure export-credentials --profile {{ $p.name }} --format env)"
     print_aws_creds
 }
+{{- end }}
+{{- end }}
 
 # --- 家居自动化脚本开始 ---
 

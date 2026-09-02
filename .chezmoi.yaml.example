@@ -1,6 +1,7 @@
 # Example Chezmoi Configuration
 # Copy this file to .chezmoi.yaml and customize your values
-# This file provides default values without prompts
+# This file provides default values without prompts.
+# 真实的私有值放 ~/.config/chezmoi/local.toml（不进仓库），结构与下面 data 一致。
 
 data:
   # Git Configuration
@@ -17,9 +18,14 @@ data:
   
   # AWS Configuration
   aws:
-    cn_region: "cn-north-1"
-    sg_region: "ap-southeast-1"
-    codeartifact_domain: "nautilus"
+    codeartifact_domain: "example-domain"
+    profiles:
+      - name: "aws-main"
+        region: "us-east-1"
+        sso: true
+      - name: "aws-artifacts"
+        region: "eu-west-1"
+        codeartifact: true
   
   # Home Automation (Tailscale & SSH)
   home:

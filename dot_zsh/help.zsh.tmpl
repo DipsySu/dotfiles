@@ -28,10 +28,14 @@ myhelp() {
     print -P "  ${C_CMD}mac_clean${C_R}     ${C_DESC}— 清理用户/系统缓存、TM 快照（破坏性，先看代码）${C_R}"
     print -P "  ${C_CMD}mac_monitor${C_R}   ${C_DESC}— 实时监控大屏 (Ctrl+C 退出)${C_R}"
     print -P ""
+{{- $profiles := dig "aws" "profiles" (list) . }}
+{{- if $profiles }}
     print -P "${C_GROUP}☁️  AWS 切换${C_R}"
-    print -P "  ${C_CMD}aws-cn${C_R}        ${C_DESC}— 切到 aws-cn (cn-north-1)，自动 SSO 续 token${C_R}"
-    print -P "  ${C_CMD}aws-sg${C_R}        ${C_DESC}— 切到 aws-sg (ap-southeast-1) + CodeArtifact token${C_R}"
+{{- range $profiles }}
+    print -P "  ${C_CMD}{{ printf "%-13s" .name }}${C_R} ${C_DESC}— 切到 {{ .name }} ({{ .region }}){{ if dig "sso" false . }}，自动 SSO 续 token{{ end }}{{ if dig "codeartifact" false . }} + CodeArtifact token{{ end }}${C_R}"
+{{- end }}
     print -P ""
+{{- end }}
     print -P "${C_GROUP}🏠 家居自动化（依赖 Tailscale + ssh home-pc）${C_R}"
     print -P "  ${C_CMD}wake_home${C_R}     ${C_DESC}— 远程唤醒家里 PC + 持续 ping 探测${C_R}"
     print -P "  ${C_CMD}sleep_home${C_R}    ${C_DESC}— 远程休眠家里 PC${C_R}"
