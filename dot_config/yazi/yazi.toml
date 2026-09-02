@@ -39,6 +39,10 @@ play = [
 	{ run = 'explorer.exe "$(wslpath -w %s1)"', desc = "Windows 默认播放器", for = "linux", orphan = true },
 	{ run = 'open %s',                          desc = "macOS 默认播放器",   for = "macos" },
 ]
+# WPS Office：Word / Excel / PPT。脚本在 WSL 里按注册表找 wps.exe，在 macOS 用 open -a
+wps = [
+	{ run = '~/.config/yazi/scripts/wps.sh %s', desc = "WPS Office", orphan = true },
+]
 # 在文件管理器中定位该文件
 reveal = [
 	{ run = 'explorer.exe /select,"$(wslpath -w %s1)"', desc = "资源管理器中定位", for = "linux", orphan = true },
@@ -53,6 +57,9 @@ prepend_rules = [
 	{ mime = "text/*", use = [ "edit", "code", "open", "reveal" ] },
 	{ mime = "application/{json,ndjson,javascript,toml,yaml,x-yaml,xml,x-sh,x-shellscript}", use = [ "edit", "code", "reveal" ] },
 	{ mime = "inode/empty", use = [ "edit", "code", "reveal" ] },
+	# Office 文档：WPS 优先，O 可选系统默认程序
+	{ url = "*.{doc,docx,docm,dot,dotx,wps,wpt,rtf,odt,xls,xlsx,xlsm,xlsb,et,ett,ods,ppt,pptx,pptm,pps,ppsx,dps,dpt,odp}", use = [ "wps", "open", "reveal" ] },
+	{ mime = "application/{msword,vnd.ms-excel,vnd.ms-powerpoint,vnd.openxmlformats-officedocument.*,vnd.oasis.opendocument.*}", use = [ "wps", "open", "reveal" ] },
 	# 常见开发文件按扩展名兜底，避免 MIME 识别不到时被丢给系统程序
 	{ url = "*.{kt,kts,java,gradle,groovy,ts,tsx,js,jsx,mjs,cjs,json,jsonc,toml,yaml,yml,xml,md,mdx,lua,py,go,rs,sh,zsh,bash,properties,env,ini,conf,cfg,sql,tf,vue,svelte,css,scss,less,html,htm,gitignore,editorconfig}", use = [ "edit", "code", "reveal" ] },
 	{ url = "{Dockerfile,Makefile,Jenkinsfile,*.lock}", use = [ "edit", "code", "reveal" ] },
