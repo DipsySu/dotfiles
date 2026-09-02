@@ -18,7 +18,8 @@ cache="${XDG_CACHE_HOME:-$HOME/.cache}/yazi-wps-exe"
 exe=""
 [ -r "$cache" ] && exe="$(cat "$cache")"
 if [ -z "$exe" ] || [ ! -f "$exe" ]; then
-	win="$(reg.exe query 'HKCR\WPS.Docx.6\shell\open\command' /ve 2>/dev/null | tr -d '\r' | sed -n 's/.*REG_SZ *"\([^"]*[Ww][Pp][Ss]\.exe\)".*/\1/p' | head -n 1)"
+	# reg.exe 输出里的“(默认)”是 GBK 字节，必须用 LC_ALL=C 让 sed 按字节匹配
+	win="$(reg.exe query 'HKCR\WPS.Docx.6\shell\open\command' /ve 2>/dev/null | tr -d '\r' | LC_ALL=C sed -n 's/.*REG_SZ[[:space:]]*"\([^"]*\.[Ee][Xx][Ee]\)".*/\1/p' | head -n 1)"
 	exe=""
 	if [ -n "$win" ]; then
 		exe="$(wslpath -u "$win" 2>/dev/null || true)"
@@ -35,12 +36,20 @@ if [ "${1:-}" = "--which" ]; then
 	exit 0
 fi
 
+# 先把路径都转成 Windows 形式，再切到 /mnt/c 启动，避开 UNC 工作目录的告警
+wins=""
 for f in "$@"; do
-	w="$(wslpath -w "$f")"
+	wins="$wins$(wslpath -w "$f")
+"
+done
+cd /mnt/c 2>/dev/null || true
+printf '%s' "$wins" | while IFS= read -r w; do
+	[ -n "$w" ] || continue
 	if [ -z "$exe" ]; then
 		explorer.exe "$w"
 		continue
 	fi
+	f="$w"
 	ext="$(printf '%s' "${f##*.}" | tr 'A-Z' 'a-z')"
 	case "$ext" in
 	xls | xlsx | xlsm | xlsb | csv | et | ett | ods) comp=/et ;;
