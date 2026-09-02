@@ -1,0 +1,38 @@
+# Example Chezmoi Configuration
+# Copy this file to .chezmoi.yaml and customize your values
+# This file provides default values without prompts
+
+data:
+  # Git Configuration
+  name: "Your Name"
+  email: "your.email@example.com"
+  
+  # Development Tools Versions
+  versions:
+    go: "latest"
+    java: "temurin-21"
+    node: "lts"
+    python: "3.11"
+    flutter: "3.35.3"
+  
+  # AWS Configuration
+  aws:
+    cn_region: "cn-north-1"
+    sg_region: "ap-southeast-1"
+    codeartifact_domain: "nautilus"
+  
+  # Home Automation (Tailscale & SSH)
+  home:
+    tailscale_path: ""  # blank = auto-detect WSL/macOS/Linux path
+    ssh_host: "home-pc"
+    pc_ip: "192.168.1.100"
+    nas_ssh: ""            # user@host，留空则不生成 sshnas 别名
+    nas_nfs: ""            # host:/export，留空则不生成 mountnas 别名
+  wsl:
+    win_home: ""           # WSL 填 /mnt/c/Users/<name>，macOS 留空
+  
+  # Shell Configuration
+  shell:
+    enable_starship: true
+    enable_zoxide: true
+    enable_eza: true

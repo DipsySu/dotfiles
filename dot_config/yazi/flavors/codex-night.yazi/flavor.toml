@@ -1,0 +1,166 @@
+#:schema https://yazi-rs.github.io/schemas/theme.json
+# Codex Night · 与 Windows Terminal 配色方案一一对应
+#   background #0B0F14   foreground #D6DAE2   selection #24344D
+#   black #1B222C  brightBlack #697386
+#   blue #7AA2F7   cyan #66C7D4   green #82D49A   yellow #DDBE78   red #F07D7D   purple #BCA3F5
+#   bright: blue #9DBBFF  cyan #8CDDE8  green #A1E3B2  yellow #F4D88C  red #FF9A9A  purple #D0B3FF
+# 语法高亮 tmtheme.xml 借用 Tokyo Night（主色 #7AA2F7 与本方案一致）
+
+[mgr]
+cwd = { fg = "#66C7D4", bold = true }
+
+# Find
+find_keyword  = { fg = "#F4D88C", bold = true, italic = true, underline = true }
+find_position = { fg = "#D0B3FF", bg = "reset", bold = true, italic = true }
+
+# Symlink
+symlink_target = { fg = "#697386", italic = true }
+
+# Marker
+marker_copied   = { fg = "#82D49A", bg = "#82D49A" }
+marker_cut      = { fg = "#F07D7D", bg = "#F07D7D" }
+marker_marked   = { fg = "#66C7D4", bg = "#66C7D4" }
+marker_selected = { fg = "#DDBE78", bg = "#DDBE78" }
+marker_symbol   = "│"
+
+# Count
+count_copied   = { fg = "#0B0F14", bg = "#82D49A" }
+count_cut      = { fg = "#0B0F14", bg = "#F07D7D" }
+count_selected = { fg = "#0B0F14", bg = "#DDBE78" }
+
+# Border
+border_symbol = "│"
+border_style  = { fg = "#3B4A63" }
+
+[tabs]
+active   = { fg = "#0B0F14", bg = "#7AA2F7", bold = true }
+inactive = { fg = "#7AA2F7", bg = "#1B222C" }
+sep_inner = { open = "", close = "" }
+sep_outer = { open = "", close = "" }
+
+[mode]
+normal_main = { fg = "#0B0F14", bg = "#7AA2F7", bold = true }
+normal_alt  = { fg = "#7AA2F7", bg = "#1B222C" }
+select_main = { fg = "#0B0F14", bg = "#BCA3F5", bold = true }
+select_alt  = { fg = "#BCA3F5", bg = "#1B222C" }
+unset_main  = { fg = "#0B0F14", bg = "#F07D7D", bold = true }
+unset_alt   = { fg = "#F07D7D", bg = "#1B222C" }
+
+# 光标所在行：用终端的选区色做背景，保留文件类型的前景色
+[indicator]
+parent  = { bg = "#24344D" }
+current = { bg = "#24344D", bold = true }
+preview = { underline = true }
+padding = { open = "", close = "" }
+
+[status]
+overall   = {}
+sep_left  = { open = "", close = "" }
+sep_right = { open = "", close = "" }
+
+perm_sep   = { fg = "#697386" }
+perm_type  = { fg = "#82D49A" }
+perm_read  = { fg = "#DDBE78" }
+perm_write = { fg = "#F07D7D" }
+perm_exec  = { fg = "#66C7D4" }
+
+progress_label  = { fg = "#D6DAE2", bold = true }
+progress_normal = { fg = "#7AA2F7", bg = "#1B222C" }
+progress_error  = { fg = "#F07D7D", bg = "#1B222C" }
+
+[which]
+border          = { fg = "#7AA2F7" }
+cols            = 3
+mask            = {}
+cand            = { fg = "#66C7D4" }
+rest            = { fg = "#697386" }
+desc            = { fg = "#BCA3F5" }
+separator       = "  "
+separator_style = { fg = "#697386" }
+
+[confirm]
+border     = { fg = "#7AA2F7" }
+title      = { fg = "#7AA2F7", bold = true }
+body       = {}
+list       = {}
+btn_yes    = { fg = "#0B0F14", bg = "#7AA2F7", bold = true }
+btn_no     = {}
+btn_labels = [ "  [Y]es  ", "  (N)o  " ]
+
+[spot]
+border   = { fg = "#7AA2F7" }
+title    = { fg = "#7AA2F7" }
+tbl_col  = { fg = "#7AA2F7" }
+tbl_cell = { fg = "#DDBE78", reversed = true }
+
+[notify]
+title_info  = { fg = "#82D49A" }
+title_warn  = { fg = "#DDBE78" }
+title_error = { fg = "#F07D7D" }
+icon_info  = ""
+icon_warn  = ""
+icon_error = ""
+
+[pick]
+border   = { fg = "#7AA2F7" }
+active   = { fg = "#BCA3F5", bold = true }
+inactive = {}
+
+[input]
+border   = { fg = "#7AA2F7" }
+title    = {}
+value    = {}
+selected = { bg = "#24344D" }
+
+[cmp]
+border   = { fg = "#7AA2F7" }
+active   = { bg = "#24344D", bold = true }
+inactive = {}
+icon_file    = ""
+icon_folder  = ""
+icon_command = ""
+
+[tasks]
+border  = { fg = "#7AA2F7" }
+title   = {}
+hovered = { fg = "#BCA3F5", bold = true }
+
+[help]
+border  = { fg = "#7AA2F7" }
+chord   = { fg = "#66C7D4" }
+action  = { fg = "#BCA3F5" }
+hovered = { bg = "#24344D", bold = true }
+
+[filetype]
+rules = [
+	# Image
+	{ mime = "**/image/*", fg = "#DDBE78" },
+	# Media
+	{ mime = "**/{audio,video}/*", fg = "#BCA3F5" },
+	# Archive
+	{ mime = "**/application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#F07D7D" },
+	# Document
+	{ mime = "**/application/{pdf,doc,rtf}", fg = "#66C7D4" },
+	# Virtual file system
+	{ mime = "vfs/{absent,stale}", fg = "#697386" },
+	# Special file
+	{ url = "*", is = "orphan", bg = "#F07D7D" },
+	{ url = "*", is = "exec",   fg = "#82D49A" },
+	# Dummy file
+	{ url = "*",  is = "dummy", bg = "#F07D7D" },
+	{ url = "*/", is = "dummy", bg = "#F07D7D" },
+	# Fallback
+	{ url = "*/", fg = "#7AA2F7" },
+]
+
+# git.yazi 插件的状态颜色
+[git]
+unknown   = { fg = "#697386" }
+ignored   = { fg = "#697386" }
+untracked = { fg = "#66C7D4" }
+unstaged  = { fg = "#DDBE78" }
+staged    = { fg = "#82D49A" }
+added     = { fg = "#82D49A" }
+deleted   = { fg = "#F07D7D" }
+updated   = { fg = "#DDBE78" }
+clean     = { fg = "#697386" }

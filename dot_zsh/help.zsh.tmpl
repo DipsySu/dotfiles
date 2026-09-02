@@ -1,0 +1,86 @@
+# =================================================================
+# myhelp / cheatsheet — 自定义命令速查
+# =================================================================
+myhelp() {
+    local C_TITLE=$'\033[1;36m'
+    local C_GROUP=$'\033[1;33m'
+    local C_CMD=$'\033[1;32m'
+    local C_DESC=$'\033[0;37m'
+    local C_R=$'\033[0m'
+
+    # 单参数：模糊搜索某个命令
+    if [[ -n "$1" ]]; then
+        myhelp | grep -iE --color=auto "$1|^$|━━"
+        return
+    fi
+
+    print -P ""
+    print -P "${C_TITLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_R}"
+    print -P "${C_TITLE} 🧰 Dipsy 的命令速查 (myhelp <关键词> 可过滤)${C_R}"
+    print -P "${C_TITLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_R}"
+    print -P ""
+    print -P "${C_GROUP}🖥️  macOS 系统诊断${C_R}"
+    print -P "  ${C_CMD}mac_check${C_R}     ${C_DESC}— 综合体检：CPU/内存/磁盘/Docker/Swap/散热${C_R}"
+    print -P "  ${C_CMD}mac_cpu${C_R}       ${C_DESC}— CPU 详细分析（top + 用户聚合）${C_R}"
+    print -P "  ${C_CMD}mac_mem${C_R}       ${C_DESC}— 内存详细 + 内存压力 + 疑似泄漏进程${C_R}"
+    print -P "  ${C_CMD}mac_docker${C_R}    ${C_DESC}— Docker 状态、容器、镜像、清理建议${C_R}"
+    print -P "  ${C_CMD}mac_purge${C_R}     ${C_DESC}— 清理内存缓存 (sudo purge)${C_R}"
+    print -P "  ${C_CMD}mac_clean${C_R}     ${C_DESC}— 清理用户/系统缓存、TM 快照（破坏性，先看代码）${C_R}"
+    print -P "  ${C_CMD}mac_monitor${C_R}   ${C_DESC}— 实时监控大屏 (Ctrl+C 退出)${C_R}"
+    print -P ""
+    print -P "${C_GROUP}☁️  AWS 切换${C_R}"
+    print -P "  ${C_CMD}aws-cn${C_R}        ${C_DESC}— 切到 aws-cn (cn-north-1)，自动 SSO 续 token${C_R}"
+    print -P "  ${C_CMD}aws-sg${C_R}        ${C_DESC}— 切到 aws-sg (ap-southeast-1) + CodeArtifact token${C_R}"
+    print -P ""
+    print -P "${C_GROUP}🏠 家居自动化（依赖 Tailscale + ssh home-pc）${C_R}"
+    print -P "  ${C_CMD}wake_home${C_R}     ${C_DESC}— 远程唤醒家里 PC + 持续 ping 探测${C_R}"
+    print -P "  ${C_CMD}sleep_home${C_R}    ${C_DESC}— 远程休眠家里 PC${C_R}"
+    print -P "  ${C_CMD}check_home${C_R}    ${C_DESC}— 抓取家里 PC 实时硬件状态${C_R}"
+    print -P "  ${C_CMD}ssh_istore${C_R}    ${C_DESC}— SSH 进 iStoreOS${C_R}"
+    print -P ""
+    print -P "${C_GROUP}🔧 Git 工具${C_R}"
+    print -P "  ${C_CMD}gpullall${C_R}      ${C_DESC}— 当前目录所有 git 仓库并行 pull (4 并发)${C_R}"
+    print -P "  ${C_CMD}gscan${C_R}         ${C_DESC}— 扫描所有子仓库的分支与 clean/dirty${C_R}"
+    print -P "  ${C_CMD}git lg${C_R}        ${C_DESC}— 彩色图形化 log${C_R}"
+    print -P "  ${C_CMD}git s${C_R}         ${C_DESC}— git status -sb 短输出${C_R}"
+    print -P "  ${C_CMD}git last${C_R}      ${C_DESC}— 最后一次 commit 详情${C_R}"
+    print -P "  ${C_CMD}git unstage${C_R}   ${C_DESC}— 取消 stage${C_R}"
+    print -P "  ${C_CMD}gs gd ga gp gl gco gcb gcm gst gstp glog${C_R}  ${C_DESC}— git 高频别名${C_R}"
+    print -P ""
+    print -P "${C_GROUP}🐳 Docker${C_R}"
+    print -P "  ${C_CMD}dps${C_R}           ${C_DESC}— 简洁的运行中容器列表${C_R}"
+    print -P "  ${C_CMD}dpsa${C_R}          ${C_DESC}— 含已停止的所有容器${C_R}"
+    print -P "  ${C_CMD}dlogs <name>${C_R}  ${C_DESC}— 跟随日志（最近 100 行）${C_R}"
+    print -P "  ${C_CMD}dprune${C_R}        ${C_DESC}— 清理所有未使用容器/镜像/卷${C_R}"
+    print -P ""
+    print -P "${C_GROUP}🌐 网络${C_R}"
+    print -P "  ${C_CMD}ports${C_R}         ${C_DESC}— 列出本地监听端口${C_R}"
+    print -P "  ${C_CMD}myip${C_R}          ${C_DESC}— 公网 IP${C_R}"
+    print -P "  ${C_CMD}localip${C_R}       ${C_DESC}— 局域网 IP (en0)${C_R}"
+    print -P ""
+    print -P "${C_GROUP}🚀 跳转 / 杂项${C_R}"
+    print -P "  ${C_CMD}dev / dl / dt${C_R} ${C_DESC}— 跳 ~/Developer / ~/Downloads / ~/Desktop${C_R}"
+    print -P "  ${C_CMD}cd <part>${C_R}     ${C_DESC}— zoxide 模糊跳转${C_R}"
+    print -P "  ${C_CMD}brewup${C_R}        ${C_DESC}— update + upgrade + cleanup + doctor 一条龙${C_R}"
+    print -P "  ${C_CMD}reload${C_R}        ${C_DESC}— 重新加载 ~/.zshrc${C_R}"
+    print -P "  ${C_CMD}sshnas / mountnas${C_R}  ${C_DESC}— NAS 相关${C_R}"
+    print -P ""
+    print -P "${C_GROUP}⌨️  fzf 交互快捷键${C_R}"
+    print -P "  ${C_CMD}Ctrl+T${C_R}        ${C_DESC}— 选文件 (fd + bat 预览)${C_R}"
+    print -P "  ${C_CMD}Ctrl+R${C_R}        ${C_DESC}— 历史命令搜索${C_R}"
+    print -P "  ${C_CMD}Alt+C${C_R}         ${C_DESC}— 选目录并进入 (eza tree 预览)${C_R}"
+    print -P ""
+    print -P "${C_GROUP}📁 direnv（项目级环境变量）${C_R}"
+    print -P "  ${C_CMD}echo 'export FOO=bar' > .envrc && direnv allow${C_R}"
+    print -P "                ${C_DESC}— 进目录自动加载 / 离开自动卸载${C_R}"
+    print -P ""
+    print -P "${C_TITLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_R}"
+    print -P "${C_DESC} 提示: ${C_CMD}myhelp git${C_DESC} / ${C_CMD}myhelp mac${C_DESC} / ${C_CMD}myhelp docker${C_DESC} 可过滤${C_R}"
+    print -P "${C_TITLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_R}"
+    print -P ""
+}
+
+# 短别名
+alias '?'='myhelp'
+alias '??'='myhelp'
+alias cheat='myhelp'

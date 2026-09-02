@@ -1,0 +1,40 @@
+# Chezmoi Configuration Template
+# This file contains template variables for your dotfiles
+
+[data]
+# Git Configuration
+name = "{{ promptStringOnce . "name" "Git username" "Dipsy" }}"
+email = "{{ promptStringOnce . "email" "Git email" "you@example.com" }}"
+
+# Development Tools Versions
+[data.versions]
+go = "{{ promptStringOnce . "versions.go" "Go version" "latest" }}"
+java = "{{ promptStringOnce . "versions.java" "Java version" "temurin-21" }}"
+node = "{{ promptStringOnce . "versions.node" "Node.js version" "lts" }}"
+python = "{{ promptStringOnce . "versions.python" "Python version" "3.11" }}"
+flutter = "{{ promptStringOnce . "versions.flutter" "Flutter version" "3.35.3" }}"
+
+# AWS Configuration
+[data.aws]
+cn_region = "{{ promptStringOnce . "aws.cn_region" "AWS China region" "cn-north-1" }}"
+sg_region = "{{ promptStringOnce . "aws.sg_region" "AWS Singapore region" "ap-southeast-1" }}"
+codeartifact_domain = "{{ promptStringOnce . "aws.codeartifact_domain" "CodeArtifact domain" "nautilus" }}"
+
+# Home Automation (Tailscale & SSH)
+[data.home]
+tailscale_path = "{{ promptStringOnce . "home.tailscale_path" "Tailscale executable path (blank for auto-detect)" "" }}"
+ssh_host = "{{ promptStringOnce . "home.ssh_host" "Home SSH host alias" "home-pc" }}"
+pc_ip = "{{ promptStringOnce . "home.pc_ip" "Home PC IP address" "192.168.1.100" }}"
+# NAS：留空则不生成 sshnas / mountnas 别名
+nas_ssh = "{{ promptStringOnce . "home.nas_ssh" "NAS SSH target" "" }}"
+nas_nfs = "{{ promptStringOnce . "home.nas_nfs" "NAS NFS export" "" }}"
+
+# Shell Configuration
+[data.shell]
+enable_starship = {{ promptBoolOnce . "shell.enable_starship" "Enable Starship prompt" true }}
+enable_zoxide = {{ promptBoolOnce . "shell.enable_zoxide" "Enable Zoxide (smart cd)" true }}
+enable_eza = {{ promptBoolOnce . "shell.enable_eza" "Enable Eza (better ls)" true }}
+
+# WSL only: Windows user profile as seen from WSL, e.g. /mnt/c/Users/<name>. Leave blank on macOS / plain Linux.
+[data.wsl]
+win_home = "{{ promptStringOnce . "wsl.win_home" "Windows profile dir from WSL" "" }}"

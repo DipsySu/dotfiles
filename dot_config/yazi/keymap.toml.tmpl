@@ -1,0 +1,47 @@
+#:schema https://yazi-rs.github.io/schemas/keymap.json
+# 只追加 / 覆盖，其余按默认；按 ~ 查看全部快捷键
+# 带 for = "linux" 的按 WSL 写，带 for = "macos" 的是 Mac 对应项；不带的两边通用
+# Windows 侧路径来自 chezmoi 变量 wsl.win_home（/mnt/c/Users/<name>），非 WSL 机器上这段不渲染
+
+[mgr]
+prepend_keymap = [
+	# ── 插件 ──────────────────────────────────────────────────
+	{ on = "l",          run = "plugin smart-enter",             desc = "进入目录 / 打开文件" },
+	{ on = "<Enter>",    run = "plugin smart-enter",             desc = "进入目录 / 打开文件" },
+	{ on = "T",          run = "plugin toggle-pane max-preview", desc = "最大化 / 还原预览" },
+	{ on = "<C-t>",      run = "plugin toggle-pane min-preview", desc = "隐藏 / 显示预览" },
+	{ on = "F",          run = "plugin smart-filter",            desc = "智能过滤：边输边筛，唯一目录自动进入" },
+	{ on = [ "c", "m" ], run = "plugin chmod",                   desc = "修改权限 chmod" },
+
+	# ── 编辑器 / 系统文件管理器互操作 ─────────────────────────
+	{ on = "e",          run = "shell --orphan 'code %s'",        desc = "用 VS Code 打开" },
+	{ on = "<C-e>",      run = "shell --orphan 'explorer.exe .'", desc = "在资源管理器中打开当前目录", for = "linux" },
+	{ on = "<C-e>",      run = "shell --orphan 'open .'",         desc = "在 Finder 中打开当前目录",   for = "macos" },
+	# 复制路径：macOS 直接用默认 c c（pbcopy）；WSL 额外给一个复制 Windows 格式路径
+	{ on = [ "c", "w" ], run = "shell 'wslpath -w %h | ~/.config/yazi/scripts/clip.sh'", desc = "复制 Windows 路径到剪贴板", for = "linux" },
+
+	# ── 自定义 linemode（init.lua）────────────────────────────
+	{ on = [ "m", "t" ], run = "linemode size_and_mtime", desc = "Linemode: 大小 + 修改时间" },
+
+	# ── 快速跳转 g + 键：通用 ─────────────────────────────────
+	{ on = [ "g", "l" ], run = "cd ~",              desc = "→ 家目录（与默认 g h 相同）" },
+	{ on = [ "g", "y" ], run = "cd ~/.config/yazi", desc = "→ yazi 配置" },
+
+{{- if .wsl.win_home }}
+	# ── 快速跳转：WSL ─────────────────────────────────────────
+	{ on = [ "g", "b" ], run = "cd ~/backend",  desc = "→ ~/backend",  for = "linux" },
+	{ on = [ "g", "F" ], run = "cd ~/frontend", desc = "→ ~/frontend", for = "linux" },
+	{ on = [ "g", "o" ], run = "cd ~/other",    desc = "→ ~/other",    for = "linux" },
+	{ on = [ "g", "w" ], run = "cd {{ .wsl.win_home }}",           desc = "→ Windows 用户目录", for = "linux" },
+	{ on = [ "g", "d" ], run = "cd {{ .wsl.win_home }}/Downloads", desc = "→ Windows 下载",     for = "linux" },
+	{ on = [ "g", "D" ], run = "cd {{ .wsl.win_home }}/Desktop",   desc = "→ Windows 桌面",     for = "linux" },
+	{ on = [ "g", "m" ], run = "cd /mnt/c",                            desc = "→ C 盘",             for = "linux" },
+	{ on = [ "g", "v" ], run = "cd '{{ .wsl.win_home }}/Documents/Obsidian Vault'", desc = "→ Obsidian Vault", for = "linux" },
+{{- end }}
+
+	# ── 快速跳转：macOS ───────────────────────────────────────
+	{ on = [ "g", "w" ], run = "cd ~/Developer", desc = "→ ~/Developer（工作目录）", for = "macos" },
+	{ on = [ "g", "d" ], run = "cd ~/Downloads", desc = "→ 下载",                    for = "macos" },
+	{ on = [ "g", "D" ], run = "cd ~/Desktop",   desc = "→ 桌面",                    for = "macos" },
+	{ on = [ "g", "m" ], run = "cd /Volumes",    desc = "→ 挂载的磁盘",              for = "macos" },
+]

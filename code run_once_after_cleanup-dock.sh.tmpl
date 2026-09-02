@@ -1,0 +1,13 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+
+echo "☢️  Nuking the Dock..."
+
+# 这就是你要的那行命令：清空 persistent-apps 数组
+defaults write com.apple.dock persistent-apps -array
+
+# 重启 Dock 生效
+killall Dock
+
+echo "✨ Dock is now empty. Clean start!"
+{{ end -}}

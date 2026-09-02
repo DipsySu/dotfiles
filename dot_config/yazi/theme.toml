@@ -1,0 +1,6 @@
+#:schema https://yazi-rs.github.io/schemas/theme.json
+# 配色来自 Windows Terminal 的 "Codex Night" 方案，见 flavors/codex-night.yazi
+# 终端始终是深色，所以两种模式都指向同一个 flavor
+[flavor]
+dark  = "codex-night"
+light = "codex-night"

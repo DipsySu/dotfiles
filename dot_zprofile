@@ -1,0 +1,4 @@
+# NOTE: do NOT source ~/.zshrc here.
+# zsh automatically sources .zshrc for every interactive shell, including
+# login+interactive shells launched by Terminal.app, iTerm2, and VS Code.
+# Sourcing it manually makes the shell init twice and slows down startup.

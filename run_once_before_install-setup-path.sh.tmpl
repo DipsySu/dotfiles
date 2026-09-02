@@ -1,0 +1,13 @@
+#!/bin/bash
+# 在安装其他软件之前，确保 PATH 设置正确
+
+# 确保 ~/.local/bin 目录存在
+mkdir -p "$HOME/.local/bin"
+
+# 临时添加到当前会话的 PATH (用于安装过程)
+if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+    export PATH="$HOME/.local/bin:$PATH"
+    echo "✅ 已添加 ~/.local/bin 到当前会话的 PATH"
+fi
+
+echo "🔧 PATH 设置完成"

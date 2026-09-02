@@ -1,0 +1,47 @@
+# =================================================================
+# Mise Configuration (Managed by Chezmoi)
+# =================================================================
+
+[tools]
+go = "{{ .versions.go }}"
+java = "{{ .versions.java }}"
+node = "{{ .versions.node }}"
+python = "{{ .versions.python }}"
+flutter = "{{ .versions.flutter }}"
+rust = "1.85.0"
+
+# AI CLI（Claude Code / Codex / Gemini / Antigravity / Grok）一律走官方安装器，
+# 不由 mise 的 npm 后端管理，避免和官方自更新机制打架。
+
+[settings]
+# 开启实验性功能 (有助于解决一些 Python/Node 路径问题)
+experimental = true
+
+# =================================================================
+# ✅ 环境变量区域 (所有镜像加速都放这里)
+# =================================================================
+[env]
+# --- Node.js 镜像 ---
+# 这里的变量名是 node-build (mise 的底层安装器) 识别的标准变量
+NODE_MIRROR = "https://npmmirror.com/dist/"
+# NPM 包安装源
+npm_config_registry = "https://registry.npmmirror.com"
+
+# --- Python 镜像 ---
+# python-build 识别的标准变量
+PYTHON_BUILD_MIRROR_URL = "https://npmmirror.com/mirrors/python/"
+
+# --- Go 镜像 ---
+GOPROXY = "https://goproxy.cn,direct"
+
+# --- Rust 镜像 ---
+RUSTUP_DIST_SERVER = "https://mirrors.ustc.edu.cn/rust-static"
+RUSTUP_UPDATE_ROOT = "https://mirrors.ustc.edu.cn/rust-static/rustup"
+
+# --- Flutter 镜像 ---
+PUB_HOSTED_URL = "https://pub.flutter-io.cn"
+FLUTTER_STORAGE_BASE_URL = "https://storage.flutter-io.cn"
+
+# --- Android SDK 路径 ---
+# Android path is selected in ~/.zsh/android.zsh so Intel and Apple Silicon
+# Homebrew prefixes both work.

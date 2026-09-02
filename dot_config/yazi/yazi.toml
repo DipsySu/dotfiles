@@ -1,0 +1,72 @@
+#:schema https://yazi-rs.github.io/schemas/yazi.json
+# Yazi 26.9.1 · 双机配置：WSL2 Ubuntu（Windows Terminal）+ macOS（Intel / Apple Silicon）
+# 用 yazi 自带的 `for = "linux" | "macos"` 按系统生效，不依赖模板；这里的 linux 条目都按 WSL 写。
+# 依赖：fd fzf zoxide ffmpeg poppler 7z（macOS 由 Brewfile 装；WSL 上 fd/fzf/zoxide 走 brew，媒体库走 apt）
+
+[mgr]
+ratio          = [ 1, 4, 3 ]
+sort_by        = "natural"          # 1, 2, 10 按自然顺序，而不是 1, 10, 2
+sort_sensitive = false
+sort_dir_first = true
+linemode       = "size_and_mtime"   # 自定义：大小 + 修改时间，定义在 init.lua
+show_hidden    = false
+show_symlink   = true
+scrolloff      = 5
+
+[preview]
+tab_size   = 4
+max_width  = 1000   # 配合 T 最大化预览时图片更清晰
+max_height = 1000
+
+# ──────────────────────────────────────────────────────────────
+# 打开方式（%s = 所有选中文件，%s1 = 第一个选中文件）
+# ──────────────────────────────────────────────────────────────
+[opener]
+# 终端编辑器，阻塞直到退出
+edit = [
+	{ run = '${EDITOR:-vim} %s', desc = "vim", block = true },
+]
+# VS Code：WSL 里的 code 是 Windows 端 VS Code 的包装（自动走 Remote-WSL），macOS 上是 cask 装的 code 命令
+code = [
+	{ run = 'code %s', desc = "VS Code", orphan = true },
+]
+# 交给系统默认程序：图片 / 视频 / PDF / Office 等
+open = [
+	{ run = 'explorer.exe "$(wslpath -w %s1)"', desc = "Windows 默认程序", for = "linux", orphan = true },
+	{ run = 'open %s',                          desc = "macOS 默认程序",   for = "macos" },
+]
+play = [
+	{ run = 'explorer.exe "$(wslpath -w %s1)"', desc = "Windows 默认播放器", for = "linux", orphan = true },
+	{ run = 'open %s',                          desc = "macOS 默认播放器",   for = "macos" },
+]
+# 在文件管理器中定位该文件
+reveal = [
+	{ run = 'explorer.exe /select,"$(wslpath -w %s1)"', desc = "资源管理器中定位", for = "linux", orphan = true },
+	{ run = 'open -R %s1',                              desc = "Finder 中显示",     for = "macos" },
+]
+
+[open]
+prepend_rules = [
+	# 目录：o 用 VS Code 打开整个项目，O 可选资源管理器 / Finder
+	{ mime = "folder/*", use = [ "code", "open", "reveal" ] },
+	# 文本 / 代码：Enter 进 vim，O 可选 VS Code 或系统程序
+	{ mime = "text/*", use = [ "edit", "code", "open", "reveal" ] },
+	{ mime = "application/{json,ndjson,javascript,toml,yaml,x-yaml,xml,x-sh,x-shellscript}", use = [ "edit", "code", "reveal" ] },
+	{ mime = "inode/empty", use = [ "edit", "code", "reveal" ] },
+	# 常见开发文件按扩展名兜底，避免 MIME 识别不到时被丢给系统程序
+	{ url = "*.{kt,kts,java,gradle,groovy,ts,tsx,js,jsx,mjs,cjs,json,jsonc,toml,yaml,yml,xml,md,mdx,lua,py,go,rs,sh,zsh,bash,properties,env,ini,conf,cfg,sql,tf,vue,svelte,css,scss,less,html,htm,gitignore,editorconfig}", use = [ "edit", "code", "reveal" ] },
+	{ url = "{Dockerfile,Makefile,Jenkinsfile,*.lock}", use = [ "edit", "code", "reveal" ] },
+]
+
+# ──────────────────────────────────────────────────────────────
+# 插件 fetcher
+# ──────────────────────────────────────────────────────────────
+[plugin]
+prepend_fetchers = [
+	# mime-ext：按扩展名判断 MIME，比 file(1) 快很多（WSL 的 /mnt/c 上尤其明显）；识别不到时回退 file(1)（见 init.lua）
+	{ url = "local://*",  run = "mime-ext.local",  prio = "high", group = "mime" },
+	{ url = "remote://*", run = "mime-ext.remote", prio = "high", group = "mime" },
+	# git：文件列表旁显示 git 状态
+	{ url = "*",  run = "git", group = "git" },
+	{ url = "*/", run = "git", group = "git" },
+]

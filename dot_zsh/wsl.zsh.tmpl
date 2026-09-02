@@ -1,0 +1,23 @@
+{{- if and (eq .chezmoi.os "linux") (contains "microsoft" (lower .chezmoi.kernel.osrelease)) -}}
+# WSL 专属设置。此文件由 chezmoi 模板生成，只在 WSL 上存在。
+
+# Clash 代理（镜像网络模式，Windows 端监听 127.0.0.1:7897）
+proxy_on() {
+    export http_proxy="http://127.0.0.1:7897"
+    export https_proxy="http://127.0.0.1:7897"
+    export all_proxy="socks5://127.0.0.1:7897"
+    export no_proxy="localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+    [[ "$1" == "--quiet" ]] || echo "🟢 proxy on (7897)"
+}
+proxy_off() {
+    unset http_proxy https_proxy all_proxy no_proxy
+    echo "🔴 proxy off"
+}
+# 默认开启，不输出提示
+proxy_on --quiet
+
+{{- if .wsl.win_home }}
+# claude-obsidian：Obsidian vault 在 Windows 侧
+export CLAUDE_OBSIDIAN_VAULT="{{ .wsl.win_home }}/Documents/Obsidian Vault"
+{{- end }}
+{{- end }}

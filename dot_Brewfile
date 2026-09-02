@@ -1,0 +1,45 @@
+brew "bat"
+brew "ca-certificates"
+brew "chezmoi"
+brew "direnv"
+brew "eza"
+brew "fd"
+brew "fzf"
+brew "gh"
+brew "git"
+brew "git-lfs"
+brew "mise"
+brew "ripgrep"
+brew "smartmontools"
+brew "starship"
+brew "tmux"
+brew "yazi"
+brew "zinit"
+brew "zoxide"
+
+if OS.mac?
+  # 仅 macOS：Linux/WSL 上 awscli 用官方安装器，媒体库用 apt（ffmpeg poppler-utils p7zip-full）
+  brew "awscli"
+  brew "cocoapods"
+  brew "dockutil"
+  # yazi 预览依赖：视频缩略图 / PDF 首页 / 压缩包内容
+  brew "ffmpeg"
+  brew "poppler"
+  brew "sevenzip"
+  brew "android-commandlinetools"
+
+  cask "font-maple-mono-nf-cn"
+  cask "google-chrome"
+  cask "iterm2"
+  cask "monitorcontrol"
+  # Optional Docker Desktop alternative. Install when a project needs Docker.
+  # cask "orbstack"
+  cask "raycast"
+  cask "rectangle"
+  cask "stats"
+  cask "tailscale-app"
+  cask "visual-studio-code"
+
+  # Optional but useful for 4K/HiDPI tuning. Uncomment if macOS scaling feels off.
+  # cask "betterdisplay"
+end
