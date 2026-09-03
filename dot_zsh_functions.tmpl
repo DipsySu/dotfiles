@@ -213,8 +213,11 @@ mac_check() {
 
     # 计算已用内存 (active + inactive + wired + compressor)
     local used_mem_gb=$(awk "BEGIN {printf \"%.1f\", ${active_mem_gb} + ${inactive_mem_gb} + ${wired_mem_gb} + ${compressor_mem_gb}}")
-    local free_percent=$(awk "BEGIN {printf \"%.0f\", ${pages_free} / ($(sysctl -n hw.memsize) / ${page_size}) * 100}")
-    local used_percent=$(awk "BEGIN {printf \"%.0f\", 100 - ${free_percent}}")
+    # 使用率按“已用 / 总量”计算,与上面的“已用 GB”保持一致。
+    # 注意:macOS 会把大量内存用作可回收缓存(inactive),真正 free 的页恒定极少,
+    # 若用 (100 - free%) 衡量会长期虚高到 99%,属于误报。真正的健康信号看下面的“内存压力”。
+    local used_percent=$(awk "BEGIN {printf \"%.0f\", ${used_mem_gb} / ${total_mem_gb} * 100}")
+    local free_percent=$(awk "BEGIN {printf \"%.0f\", 100 - ${used_percent}}")
 
     # 获取内存压力状态
     local mem_pressure_status=$(memory_pressure | grep "System-wide memory free percentage" | sed 's/.*: //' | sed 's/%$//')
