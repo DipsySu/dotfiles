@@ -1,0 +1,16 @@
+#!/bin/bash
+# 根据 yazi 的 package.toml 清单自动安装/更新插件
+# 仅当 package.toml 内容变化时才触发（run_onchange + 下方 hash 注释）
+set -e
+
+# package.toml hash: {{ include "dot_config/yazi/package.toml" | sha256sum }}
+
+# 没装 yazi 就跳过（ya 是 yazi 的包管理器）
+if ! command -v ya &> /dev/null; then
+    echo "⏭️  未检测到 yazi(ya),跳过插件安装"
+    exit 0
+fi
+
+echo "📦 检测到 yazi 插件清单变化,正在安装/更新..."
+ya pkg install
+echo "✅ yazi 插件已就绪"
