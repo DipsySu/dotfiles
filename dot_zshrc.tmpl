@@ -35,6 +35,10 @@ if command -v explorer.exe >/dev/null 2>&1; then
 fi
 {{ end -}}
 
+# Grok Build CLI 补全(官方版,命令为 grok/agent;二进制经 ~/.local/bin 符号链接已在 PATH)。
+# 须在 zinit 的 zicompinit 之前加入 fpath,补全才会被收录。
+[[ -d "$HOME/.grok/completions/zsh" ]] && fpath=("$HOME/.grok/completions/zsh" $fpath)
+
 # Zinit. Prefer Homebrew's zinit, fall back to ~/.local/share/zinit.
 _zinit_script=""
 if [[ -n "$HOMEBREW_PREFIX" && -r "$HOMEBREW_PREFIX/opt/zinit/zinit.zsh" ]]; then
