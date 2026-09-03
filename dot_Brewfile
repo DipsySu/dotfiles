@@ -26,7 +26,7 @@ if OS.mac?
   brew "ffmpeg"
   brew "poppler"
   brew "sevenzip"
-  brew "android-commandlinetools"
+  cask "android-commandlinetools"
 
   cask "font-maple-mono-nf-cn"
   cask "google-chrome"
