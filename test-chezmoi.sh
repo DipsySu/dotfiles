@@ -68,7 +68,6 @@ enable_android = false
 disabled_mise_tools = ["rust"]
 [extra_mise_tools]
 "npm:@google/gemini-cli" = "latest"
-"github:anomalyco/opencode" = "latest"
 [scriptEnv]
 CODEX_INSTALLER_USE_RELEASES_OPENAI_COM = "0"
 EOF
@@ -87,7 +86,7 @@ if command -v python3 >/dev/null 2>&1; then
 import sys, tomllib
 with open(sys.argv[1], 'rb') as f:
     config = tomllib.load(f)
-extra = {'npm:@google/gemini-cli': 'latest', 'github:anomalyco/opencode': 'latest'}
+extra = {'npm:@google/gemini-cli': 'latest'}
 assert config['data']['enable_android'] is False
 assert config['data']['disabled_mise_tools'] == ['rust']
 assert config['data']['extra_mise_tools'] == extra

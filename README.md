@@ -162,7 +162,7 @@ shell:
 
 ### 每台机器的工具链配置
 
-把机器差异写入私有的 `~/.config/chezmoi/local.toml`，然后运行 `chezmoi init` 和 `chezmoi apply`。例如，保留已有 Rust，禁用 Android，并继续用 mise 管理 Gemini / OpenCode：
+把机器差异写入私有的 `~/.config/chezmoi/local.toml`，然后运行 `chezmoi init` 和 `chezmoi apply`。例如，保留已有 Rust，禁用 Android，并继续用 mise 管理 Gemini：
 
 ```toml
 enable_android = false
@@ -170,7 +170,6 @@ disabled_mise_tools = ["rust"]
 
 [extra_mise_tools]
 "npm:@google/gemini-cli" = "latest"
-"github:anomalyco/opencode" = "latest"
 ```
 
 未设置这些选项时保持默认工具链。禁用 Android 会跳过其 shell 模块和初始化安装项；已经存在的 `~/.zsh/android.zsh` 需先备份移出该目录。未由 mise 管理的 Rust 仍可通过 `~/.cargo/bin` 使用。
