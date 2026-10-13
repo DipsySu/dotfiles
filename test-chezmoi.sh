@@ -31,6 +31,9 @@ render ~/.git-hooks/commit-msg "$tmpdir/commit-msg"
 render ~/.config/mise/config.toml "$tmpdir/mise-config.toml"
 render ~/.zsh/yazi.zsh "$tmpdir/yazi.zsh"
 render ~/.zsh/ai-tools.zsh "$tmpdir/ai-tools.zsh"
+render ~/.zsh/grok-proxy.zsh "$tmpdir/grok-proxy.zsh"
+chezmoi --source "$source_dir" --config "$config_file" execute-template --file \
+    "$source_dir/run_after_ensure-ai-clis.sh.tmpl" > "$tmpdir/ensure-ai-clis.sh"
 render ~/.zsh/jetbrains.zsh "$tmpdir/jetbrains.zsh"
 render ~/.config/yazi/keymap.toml "$tmpdir/yazi-keymap.toml"
 
@@ -41,6 +44,8 @@ zsh -n "$tmpdir/android.zsh"
 zsh -n "$tmpdir/help.zsh"
 zsh -n "$tmpdir/yazi.zsh"
 zsh -n "$tmpdir/ai-tools.zsh"
+zsh -n "$tmpdir/grok-proxy.zsh"
+bash -n "$tmpdir/ensure-ai-clis.sh"
 zsh -n "$tmpdir/jetbrains.zsh"
 sh -n "$tmpdir/commit-msg"
 git config --file "$tmpdir/gitconfig" --list >/dev/null
@@ -54,5 +59,7 @@ if command -v python3 >/dev/null 2>&1; then
         python3 -c "import tomllib,sys; tomllib.load(open(sys.argv[1],'rb'))" "$f"
     done
 fi
+
+bash "$source_dir/test-ai-clis.sh"
 
 echo "All checks passed."

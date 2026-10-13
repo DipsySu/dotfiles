@@ -3,6 +3,8 @@ TIPS.md
 profile.yaml
 quick-install.sh
 test-chezmoi.sh
+test-ai-clis.sh
+scripts/
 .vscode/
 code run_once_after_cleanup-dock.sh.tmpl
 code run_once_after_cleanup-dock.sh

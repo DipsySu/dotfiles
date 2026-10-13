@@ -93,6 +93,36 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply DipsySu
 - **Go**: 最新版本
 - **Java**: Temurin 21
 
+### 独立 CLI 安装与代理
+
+每次 `chezmoi apply` 都会运行 `run_after_ensure-ai-clis.sh.tmpl`，检查以下官方安装入口。已安装的工具保持当前版本，缺失时才下载安装；安装不包含登录或模型请求。
+
+| 工具 | 安装入口 | 缺失时的版本 |
+| --- | --- | --- |
+| [Codex CLI](https://learn.chatgpt.com/docs/codex/cli) | `~/.local/bin/codex` | 官方 latest |
+| [Claude Code](https://code.claude.com/docs/en/setup) | `~/.local/bin/claude` | 官方 latest |
+| [Google Antigravity CLI](https://codelabs.developers.google.com/antigravity-cli-hands-on) | `~/.local/bin/agy` | 官方 latest |
+| [Grok Build](https://docs.x.ai/build/overview) | `~/.grok/bin/grok`、`~/.grok/bin/agent` | 官方 stable |
+
+安装逻辑位于 `scripts/ensure-ai-clis.sh`。Grok 的 `grok` 和 `agent` 共用同一二进制；脚本也会补齐缺失的 `~/.local/bin` 入口。`agy` 是 Antigravity CLI，Antigravity IDE 需单独安装。
+
+Shell 配置由 chezmoi 统一管理。Antigravity 安装器的临时副本仅调整末尾的 setup 调用，添加官方支持的 `--skip-path --skip-aliases`；官方的下载和 SHA-512 校验流程保持完整。安装器布局变化时会停止该项安装。Codex / Claude 安装期间保留已有 shell 配置，Claude 的用户 settings 也会保留，避免安装迁移改写模型选项。安装被中断或恢复失败时，脚本会保留备份目录并输出路径。
+
+`dot_zsh/ai-tools.zsh` 会在 mise 刷新 PATH 后恢复 `~/.local/bin` 的优先级。`dot_zsh/grok-proxy.zsh` 管理 Grok 的本地代理：默认检查 `127.0.0.1:7897`，监听存在时仅为本次 Grok 进程设置代理；未监听时保留调用者的网络设置。可临时指定其他本地端口：
+
+```zsh
+GROK_PROXY_PORT=7890 grok login
+```
+
+日常升级使用各工具的官方更新命令：
+
+```zsh
+codex update
+claude update
+agy update
+grok update --stable
+```
+
 ### Zsh 插件
 - **fast-syntax-highlighting**: 语法高亮
 - **zsh-completions**: 补全增强
@@ -133,7 +163,7 @@ shell:
 ### Apple Silicon / MacBook Air 注意事项
 
 - Homebrew 默认在 `/opt/homebrew`，配置会自动检测，不要手写 `/usr/local`。
-- `codex`、`claude`、`gemini` 等 npm CLI 由 mise 管理，跟随全局 Node LTS。
+- Codex、Claude Code、Antigravity CLI 和 Grok Build 使用上述独立安装任务，运行入口优先于旧 mise shim。
 - Android SDK 会优先使用 `~/Library/Android/sdk`，再回退到 Homebrew 的 `android-commandlinetools` 路径。
 - Docker/OrbStack 默认不安装；如果项目需要 Docker，再手动安装 OrbStack 或 Docker Desktop。
 - 外接 4K 显示器时可按需安装 BetterDisplay，默认只安装 MonitorControl、Rectangle、Stats。
@@ -163,6 +193,8 @@ mise ls
 # 验证 AI coding CLI
 codex --version
 claude --version
+agy --version
+grok --version
 
 # 安装新版本
 mise install node@20

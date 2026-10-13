@@ -79,7 +79,7 @@ if command -v starship >/dev/null 2>&1; then
 fi
 {{- end }}
 
-# Mise: Node / Java / Go / Python / Flutter and npm CLIs are managed here.
+# Mise: Node / Java / Go / Python / Flutter runtimes are managed here.
 if command -v mise >/dev/null 2>&1; then
     eval "$(mise activate zsh)"
 elif [[ -x "$HOME/.local/bin/mise" ]]; then
