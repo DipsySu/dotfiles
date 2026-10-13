@@ -3,15 +3,35 @@
 # =================================================================
 
 [tools]
+{{- $fixedTools := list "go" "java" "node" "python" "flutter" "rust" }}
+{{- $disabledMiseTools := dig "disabled_mise_tools" (list) . }}
+{{ if not (has "go" $disabledMiseTools) -}}
 go = "{{ .versions.go }}"
+{{ end -}}
+{{ if not (has "java" $disabledMiseTools) -}}
 java = "{{ .versions.java }}"
+{{ end -}}
+{{ if not (has "node" $disabledMiseTools) -}}
 node = "{{ .versions.node }}"
+{{ end -}}
+{{ if not (has "python" $disabledMiseTools) -}}
 python = "{{ .versions.python }}"
-flutter = "{{ .versions.flutter }}"
-rust = "1.85.0"
-
-# AI CLI（Claude Code / Codex / Gemini / Antigravity / Grok）一律走官方安装器，
-# 不由 mise 的 npm 后端管理，避免和官方自更新机制打架。
+{{ end -}}
+{{ if not (has "flutter" $disabledMiseTools) -}}
+flutter = {{ get .versions "flutter" | default "3.35.3" | quote }}
+{{ end -}}
+{{ if not (has "rust" $disabledMiseTools) -}}
+rust = {{ get .versions "rust" | default "1.85.0" | quote }}
+{{ end -}}
+{{- $extraMiseTools := dig "extra_mise_tools" (dict) . }}
+{{- range $tool := keys $extraMiseTools | sortAlpha }}
+{{- if has $tool $fixedTools }}
+{{- fail (printf "extra_mise_tools must not override fixed tool %q" $tool) }}
+{{- end }}
+{{ $tool | quote }} = {{ index $extraMiseTools $tool | quote }}
+{{- end }}
+# Codex / Claude Code / Antigravity / Grok 使用官方独立安装器。
+# 其他 CLI 可通过 data.extra_mise_tools 由 mise 管理。
 
 [settings]
 # 开启实验性功能 (有助于解决一些 Python/Node 路径问题)

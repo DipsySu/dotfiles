@@ -101,11 +101,25 @@ fi
 # 2. Bundle Install
 if command -v brew &> /dev/null; then
     log_info "安装 Homebrew 软件包..."
+    {{- if eq (dig "enable_android" true .) false }}
+    chezmoi_brewfile="$(mktemp "${TMPDIR:-/tmp}/chezmoi-brewfile.XXXXXX")"
+    trap 'rm -f "$chezmoi_brewfile"' EXIT
+    awk '!/^[[:space:]]*(brew|cask)[[:space:]]+"android-commandlinetools"/' \
+        "{{ .chezmoi.sourceDir }}/dot_Brewfile" > "$chezmoi_brewfile"
+    if brew bundle --file="$chezmoi_brewfile"; then
+        log_info "Homebrew 软件包安装完成"
+    else
+        log_warn "部分 Homebrew 软件包安装失败，但继续执行"
+    fi
+    rm -f "$chezmoi_brewfile"
+    trap - EXIT
+    {{- else }}
     if brew bundle --file="{{ .chezmoi.sourceDir }}/dot_Brewfile"; then
         log_info "Homebrew 软件包安装完成"
     else
         log_warn "部分 Homebrew 软件包安装失败，但继续执行"
     fi
+    {{- end }}
 else
     log_error "Homebrew 未找到，跳过软件包安装"
 fi

@@ -60,6 +60,46 @@ if command -v python3 >/dev/null 2>&1; then
     done
 fi
 
+# Machine overrides must survive init without becoming nested in another table.
+fixture_home="$tmpdir/home"
+mkdir -p "$fixture_home/.config/chezmoi"
+cat > "$fixture_home/.config/chezmoi/local.toml" <<'EOF'
+enable_android = false
+disabled_mise_tools = ["rust"]
+[extra_mise_tools]
+"npm:@google/gemini-cli" = "latest"
+"github:anomalyco/opencode" = "latest"
+[scriptEnv]
+CODEX_INSTALLER_USE_RELEASES_OPENAI_COM = "0"
+EOF
+HOME="$fixture_home" chezmoi --source "$source_dir" --config "$config_file" \
+    execute-template --init --file "$source_dir/.chezmoi.toml.tmpl" > "$tmpdir/initialized.toml"
+HOME="$fixture_home" chezmoi --source "$source_dir" --config "$tmpdir/initialized.toml" \
+    execute-template --file "$source_dir/dot_config/mise/config.toml.tmpl" > "$tmpdir/mise-override.toml"
+HOME="$fixture_home" chezmoi --source "$source_dir" --config "$tmpdir/initialized.toml" \
+    execute-template --file "$source_dir/.chezmoiignore" > "$tmpdir/ignore-override"
+HOME="$fixture_home" chezmoi --source "$source_dir" --config "$tmpdir/initialized.toml" \
+    execute-template --file "$source_dir/run_once_install-packages.sh.tmpl" > "$tmpdir/install-override.sh"
+bash -n "$tmpdir/install-override.sh"
+grep -qx '.zsh/android.zsh' "$tmpdir/ignore-override"
+if command -v python3 >/dev/null 2>&1; then
+    python3 - "$tmpdir/initialized.toml" "$tmpdir/mise-override.toml" <<'PY'
+import sys, tomllib
+with open(sys.argv[1], 'rb') as f:
+    config = tomllib.load(f)
+extra = {'npm:@google/gemini-cli': 'latest', 'github:anomalyco/opencode': 'latest'}
+assert config['data']['enable_android'] is False
+assert config['data']['disabled_mise_tools'] == ['rust']
+assert config['data']['extra_mise_tools'] == extra
+assert config['scriptEnv'] == {'CODEX_INSTALLER_USE_RELEASES_OPENAI_COM': '0'}
+with open(sys.argv[2], 'rb') as f:
+    tools = tomllib.load(f)['tools']
+assert 'rust' not in tools
+assert tools['flutter'] == '3.35.3'
+assert all(tools[k] == v for k, v in extra.items())
+PY
+fi
+
 bash "$source_dir/test-ai-clis.sh"
 
 echo "All checks passed."

@@ -3,6 +3,7 @@ typeset -U path
 path=("$HOME/.local/bin" $path)
 
 for _tool_bin in \
+    "$HOME/.cargo/bin" \
     "$HOME/.antigravity/antigravity/bin" \
     "$HOME/.codeium/windsurf/bin" \
     "$HOME/google-cloud-sdk/bin"
@@ -79,7 +80,7 @@ if command -v starship >/dev/null 2>&1; then
 fi
 {{- end }}
 
-# Mise: Node / Java / Go / Python / Flutter runtimes are managed here.
+# Mise: Node / Java / Go / Python / Flutter and configured extra tools are managed here.
 if command -v mise >/dev/null 2>&1; then
     eval "$(mise activate zsh)"
 elif [[ -x "$HOME/.local/bin/mise" ]]; then

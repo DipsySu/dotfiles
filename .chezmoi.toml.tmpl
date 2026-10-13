@@ -17,6 +17,21 @@
 name  = {{ promptStringOnce $d "name" "Git username" "Dipsy" | quote }}
 email = {{ promptStringOnce $d "email" "Git email" "you@example.com" | quote }}
 
+# 机器私有开关：默认启用 Android；通过 local.toml 显式设为 false 可禁用。
+enable_android = {{ dig "enable_android" true $d }}
+
+{{- $disabledMiseTools := dig "disabled_mise_tools" (list) $d }}
+{{- if $disabledMiseTools }}
+disabled_mise_tools = [{{ range $index, $tool := $disabledMiseTools }}{{ if $index }}, {{ end }}{{ $tool | quote }}{{ end }}]
+{{- end }}
+{{- $extraMiseTools := dig "extra_mise_tools" (dict) $d }}
+{{- if $extraMiseTools }}
+[data.extra_mise_tools]
+{{- range $tool := keys $extraMiseTools | sortAlpha }}
+{{ $tool | quote }} = {{ index $extraMiseTools $tool | quote }}
+{{- end }}
+{{- end }}
+
 # 开发工具版本（mise）
 [data.versions]
 go      = {{ promptStringOnce $d "versions.go" "Go version" "latest" | quote }}
@@ -24,6 +39,7 @@ java    = {{ promptStringOnce $d "versions.java" "Java version" "temurin-21" | q
 node    = {{ promptStringOnce $d "versions.node" "Node.js version" "lts" | quote }}
 python  = {{ promptStringOnce $d "versions.python" "Python version" "3.11" | quote }}
 flutter = {{ promptStringOnce $d "versions.flutter" "Flutter version" "3.35.3" | quote }}
+rust    = {{ dig "versions" "rust" "1.85.0" $d | quote }}
 
 # AWS profile 切换函数：只能通过 local.toml 提供，为空则不生成任何 aws 函数
 [data.aws]
@@ -59,3 +75,11 @@ enable_eza      = {{ promptBoolOnce $d "shell.enable_eza" "Enable Eza (better ls
 # 仅 WSL：从 WSL 看到的 Windows 用户目录，例如 /mnt/c/Users/<name>；macOS 留空
 [data.wsl]
 win_home = {{ promptStringOnce $d "wsl.win_home" "Windows profile dir from WSL" "" | quote }}
+
+{{- $scriptEnv := dig "scriptEnv" (dict) $local }}
+{{- if $scriptEnv }}
+[scriptEnv]
+{{- range $key := keys $scriptEnv | sortAlpha }}
+{{ $key | quote }} = {{ index $scriptEnv $key | quote }}
+{{- end }}
+{{- end }}

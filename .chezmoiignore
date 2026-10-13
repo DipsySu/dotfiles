@@ -8,3 +8,6 @@ scripts/
 .vscode/
 code run_once_after_cleanup-dock.sh.tmpl
 code run_once_after_cleanup-dock.sh
+{{- if and (hasKey . "enable_android") (not .enable_android) }}
+.zsh/android.zsh
+{{- end }}

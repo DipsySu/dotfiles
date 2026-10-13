@@ -160,6 +160,28 @@ shell:
 - `/opt/homebrew/bin` - Homebrew (Apple Silicon macOS)
 - `/usr/local/bin` - Homebrew (Intel macOS)
 
+### 每台机器的工具链配置
+
+把机器差异写入私有的 `~/.config/chezmoi/local.toml`，然后运行 `chezmoi init` 和 `chezmoi apply`。例如，保留已有 Rust，禁用 Android，并继续用 mise 管理 Gemini / OpenCode：
+
+```toml
+enable_android = false
+disabled_mise_tools = ["rust"]
+
+[extra_mise_tools]
+"npm:@google/gemini-cli" = "latest"
+"github:anomalyco/opencode" = "latest"
+```
+
+未设置这些选项时保持默认工具链。禁用 Android 会跳过其 shell 模块和初始化安装项；已经存在的 `~/.zsh/android.zsh` 需先备份移出该目录。未由 mise 管理的 Rust 仍可通过 `~/.cargo/bin` 使用。
+
+如果 Codex 主下载站连接失败，可以在该机器的 `local.toml` 中添加官方安装器支持的下载源选项；这只影响缺失时的安装：
+
+```toml
+[scriptEnv]
+CODEX_INSTALLER_USE_RELEASES_OPENAI_COM = "0"
+```
+
 ### Apple Silicon / MacBook Air 注意事项
 
 - Homebrew 默认在 `/opt/homebrew`，配置会自动检测，不要手写 `/usr/local`。
