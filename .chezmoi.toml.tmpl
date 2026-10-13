@@ -8,7 +8,10 @@
 {{- if stat $localPath -}}
 {{-   $local = include $localPath | fromToml -}}
 {{- end -}}
-{{- $d := merge $local . -}}
+{{- $d := merge (deepCopy $local) . -}}
+{{- if hasKey $local "extra_mise_tools" -}}
+{{-   $_ := set $d "extra_mise_tools" (deepCopy (get $local "extra_mise_tools")) -}}
+{{- end -}}
 # Chezmoi 配置：由 .chezmoi.toml.tmpl 生成，值来自 ~/.config/chezmoi/local.toml 或交互提问。
 # 不要手改本文件，改 local.toml 后重新 chezmoi init。
 

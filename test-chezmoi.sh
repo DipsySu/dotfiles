@@ -14,6 +14,10 @@ trap 'rm -rf "$tmpdir"' EXIT
 
 config_file="$tmpdir/config.yaml"
 cp "$source_dir/.chezmoi.yaml.example" "$config_file"
+cat >> "$config_file" <<'EOF'
+  extra_mise_tools:
+    "npm:obsolete-tool": "latest"
+EOF
 
 render() {
     local target=$1
@@ -90,12 +94,30 @@ extra = {'npm:@google/gemini-cli': 'latest'}
 assert config['data']['enable_android'] is False
 assert config['data']['disabled_mise_tools'] == ['rust']
 assert config['data']['extra_mise_tools'] == extra
+assert 'npm:obsolete-tool' not in config['data']['extra_mise_tools']
 assert config['scriptEnv'] == {'CODEX_INSTALLER_USE_RELEASES_OPENAI_COM': '0'}
 with open(sys.argv[2], 'rb') as f:
     tools = tomllib.load(f)['tools']
 assert 'rust' not in tools
 assert tools['flutter'] == '3.35.3'
 assert all(tools[k] == v for k, v in extra.items())
+PY
+fi
+
+# An explicit empty local map must remove every fallback tool from the existing config.
+fixture_empty_home="$tmpdir/home-empty"
+mkdir -p "$fixture_empty_home/.config/chezmoi"
+cat > "$fixture_empty_home/.config/chezmoi/local.toml" <<'EOF'
+[extra_mise_tools]
+EOF
+HOME="$fixture_empty_home" chezmoi --source "$source_dir" --config "$config_file" \
+    execute-template --init --file "$source_dir/.chezmoi.toml.tmpl" > "$tmpdir/initialized-empty-extra.toml"
+if command -v python3 >/dev/null 2>&1; then
+    python3 - "$tmpdir/initialized-empty-extra.toml" <<'PY'
+import sys, tomllib
+with open(sys.argv[1], 'rb') as f:
+    config = tomllib.load(f)
+assert 'extra_mise_tools' not in config['data']
 PY
 fi
 
