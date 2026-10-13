@@ -563,3 +563,37 @@ function gscan() {
     done
     echo ""
 }
+
+# 依次升级 agy、Claude Code、Codex、Grok。某一个失败不打断后面的。
+aiup() {
+    local -a names=(agy claude codex grok)
+    local name
+    local failed=0
+
+    for name in $names; do
+        printf '\n==> %s\n' "$name"
+        if ! command -v "$name" >/dev/null 2>&1; then
+            printf 'skip: %s 不在 PATH\n' "$name"
+            failed=1
+            continue
+        fi
+        if "$name" update; then
+            printf 'ok: %s\n' "$name"
+        else
+            printf 'failed: %s (exit %s)\n' "$name" "$?"
+            failed=1
+        fi
+    done
+
+    printf '\n==> versions\n'
+    for name in $names; do
+        if command -v "$name" >/dev/null 2>&1; then
+            printf '%s: ' "$name"
+            if ! "$name" --version; then
+                failed=1
+            fi
+        fi
+    done
+
+    return $failed
+}
