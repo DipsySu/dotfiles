@@ -175,7 +175,7 @@ ai_cli_install_agy() {
     ai_cli_download 'https://antigravity.google/cli/install.sh' "$downloaded" || return 1
     # Only alter the two native-setup handoffs reviewed for this installer.
     # A changed upstream layout fails closed instead of running profile edits.
-    awk '
+    LC_ALL=C awk '
         /^[[:space:]]*"\$BINARY_PATH" install --dir "\$CUSTOM_DIR" \|\| true[[:space:]]*$/ {
             sub(/\|\| true[[:space:]]*$/, "--skip-path --skip-aliases || true"); custom++; print; next
         }
