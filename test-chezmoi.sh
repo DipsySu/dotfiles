@@ -76,7 +76,7 @@ fi
 import sys, tomllib
 with open(sys.argv[1], 'rb') as f:
     config = tomllib.load(f)
-assert config['settings']['upgrade']['auto_prune'] is False
+assert config['settings'].get('upgrade', {}).get('auto_prune', False) is False
 PY
 }
 
@@ -157,5 +157,6 @@ bash "$source_dir/test-yazi.sh"
 bash "$source_dir/test-shell-functions.sh"
 bash "$source_dir/test-git-shell.sh"
 bash "$source_dir/test-platforms.sh"
+bash "$source_dir/test-mise-compat.sh"
 
 echo "All checks passed."

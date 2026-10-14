@@ -56,7 +56,7 @@ mise install java@temurin-21
 
 ### 旧版本与 http-tarballs
 
-全局配置使用 `upgrade.auto_prune = false`，避免升级时安排旧版本自动删除。过去已经存在的延迟删除计划不会因此取消，维护前应检查 mise 状态目录中的 `tool-purgatory.json`；不要把普通查询误认为绝无副作用。
+mise 2026.8.4 及以上使用 `upgrade.auto_prune = false`，避免升级时安排旧版本自动删除。模板离线读取 `mise --version`，旧版不写入未知字段。旧版没有这项保留设置，应使用 `mise install <工具>@<版本>` 补装，避免运行 `mise upgrade`。升级 mise 管理器后再次 apply，模板会自动启用受支持的保护设置。过去已经存在的延迟删除计划不会因设置而取消，维护前应检查 mise 状态目录中的 `tool-purgatory.json`；不要把普通查询误认为绝无副作用。
 
 `http-tarballs` 是 HTTP 后端的共享解压存储，可能是运行时的实际安装目录。Flutter 的 `installs/flutter/<版本>` 可以是指向它的软链接。不能直接整目录删除；清理审核应核对所有安装的真实目标并验证工具可运行。详见 [官方 HTTP 后端文档](https://mise.jdx.dev/dev-tools/backends/http.html)。
 

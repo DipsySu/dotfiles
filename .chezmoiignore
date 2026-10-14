@@ -9,6 +9,7 @@ test-git-shell.sh
 test-shell-functions.sh
 test-yazi.sh
 test-platforms.sh
+test-mise-compat.sh
 scripts/
 .vscode/
 code run_once_after_cleanup-dock.sh.tmpl

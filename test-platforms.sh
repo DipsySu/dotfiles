@@ -4,6 +4,15 @@ source_dir="$(cd "$(dirname "$0")" && pwd)"
 tmpdir="$(mktemp -d /tmp/dotfiles-platform-test.XXXXXX)"
 trap 'rm -rf "$tmpdir"' EXIT
 cp "$source_dir/.chezmoi.yaml.example" "$tmpdir/config.yaml"
+# Keep platform fixtures independent of the host's installed mise release.
+mkdir -p "$tmpdir/bin"
+cat > "$tmpdir/bin/mise" <<'EOF'
+#!/bin/sh
+[ "$#" = 1 ] && [ "$1" = --version ] || exit 1
+printf '%s\n' '2026.9.1 fixture'
+EOF
+chmod +x "$tmpdir/bin/mise"
+export PATH="$tmpdir/bin:$PATH"
 
 for platform in mac-arm mac-intel linux wsl; do
     case "$platform" in

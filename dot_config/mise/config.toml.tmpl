@@ -36,8 +36,24 @@ rust = {{ get .versions "rust" | default "1.85.0" | quote }}
 [settings]
 # 开启实验性功能 (有助于解决一些 Python/Node 路径问题)
 experimental = true
+{{- $misePath := lookPath "mise" }}
+{{- if $misePath }}
+{{- $miseVersionOutput := output "env" "MISE_NO_CONFIG=1" "MISE_OFFLINE=1" $misePath "--version" }}
+{{- $miseVersion := regexFind "[0-9]+\\.[0-9]+\\.[0-9]+" $miseVersionOutput }}
+{{- if not $miseVersion }}
+{{- fail (printf "cannot parse mise version from %q; refusing to render an unsafe upgrade policy" $miseVersionOutput) }}
+{{- end }}
+{{- if semverCompare ">=2026.8.4" $miseVersion }}
 # 升级保留已安装的旧运行时，不自动安排延迟删除。
 upgrade.auto_prune = false
+{{- else }}
+# mise {{ $miseVersion }} 不识别 upgrade.auto_prune。请显式运行 `mise install <工具>@<版本>` 补装运行时；
+# 不要运行 `mise upgrade`，该旧版无法关闭升级时的旧运行时删除。
+{{- end }}
+{{- else }}
+# 未安装 mise 时保留保护项；bootstrap 安装的新版 mise 会识别它。
+upgrade.auto_prune = false
+{{- end }}
 
 # =================================================================
 # ✅ 环境变量区域 (所有镜像加速都放这里)
