@@ -36,6 +36,8 @@ rust = {{ get .versions "rust" | default "1.85.0" | quote }}
 [settings]
 # 开启实验性功能 (有助于解决一些 Python/Node 路径问题)
 experimental = true
+# 升级保留已安装的旧运行时，不自动安排延迟删除。
+upgrade.auto_prune = false
 
 # =================================================================
 # ✅ 环境变量区域 (所有镜像加速都放这里)

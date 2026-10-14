@@ -76,6 +76,7 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply DipsySu
 - **Chezmoi**: 配置文件管理
 - **Homebrew**: 包管理器
 - **Mise**: 运行时版本管理 (替代 nvm, pyenv 等)
+- **Mise 运行时保留**: 升级后不自动安排删除旧版本；已有的延迟删除计划需另行检查
 - **Zinit**: 轻量 Zsh 插件管理器
 
 ### CLI 工具

@@ -67,6 +67,12 @@ if command -v python3 >/dev/null 2>&1; then
     for f in "$tmpdir/mise-config.toml" "$tmpdir/yazi-keymap.toml"; do
         python3 -c "import tomllib,sys; tomllib.load(open(sys.argv[1],'rb'))" "$f"
     done
+    python3 - "$tmpdir/mise-config.toml" <<'PY'
+import sys, tomllib
+with open(sys.argv[1], 'rb') as f:
+    config = tomllib.load(f)
+assert config['settings']['upgrade']['auto_prune'] is False
+PY
 fi
 
 # Machine overrides must survive init without becoming nested in another table.
