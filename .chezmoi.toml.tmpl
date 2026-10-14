@@ -8,7 +8,7 @@
 {{- if stat $localPath -}}
 {{-   $local = include $localPath | fromToml -}}
 {{- end -}}
-{{- $d := merge (deepCopy $local) . -}}
+{{- $d := mergeOverwrite (deepCopy .) (deepCopy $local) -}}
 {{- if hasKey $local "extra_mise_tools" -}}
 {{-   $_ := set $d "extra_mise_tools" (deepCopy (get $local "extra_mise_tools")) -}}
 {{- end -}}
@@ -22,6 +22,9 @@ email = {{ promptStringOnce $d "email" "Git email" "you@example.com" | quote }}
 
 # 机器私有开关：默认启用 Android；通过 local.toml 显式设为 false 可禁用。
 enable_android = {{ dig "enable_android" true $d }}
+
+# 是否在首次初始化时安装 Brewfile 中的软件包；默认启用。
+bootstrap_packages = {{ dig "bootstrap_packages" true $d }}
 
 {{- $disabledMiseTools := dig "disabled_mise_tools" (list) $d }}
 {{- if $disabledMiseTools }}

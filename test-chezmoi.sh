@@ -14,7 +14,12 @@ trap 'rm -rf "$tmpdir"' EXIT
 
 config_file="$tmpdir/config.yaml"
 cp "$source_dir/.chezmoi.yaml.example" "$config_file"
+perl -0pi -e 's/nas_ssh: ""/nas_ssh: "legacy-nas"/; s/nas_nfs: ""/nas_nfs: "legacy-nfs"/' "$config_file"
 cat >> "$config_file" <<'EOF'
+  enable_android: true
+  bootstrap_packages: true
+  disabled_mise_tools:
+    - rust
   extra_mise_tools:
     "npm:obsolete-tool": "latest"
 EOF
@@ -69,9 +74,17 @@ fixture_home="$tmpdir/home"
 mkdir -p "$fixture_home/.config/chezmoi"
 cat > "$fixture_home/.config/chezmoi/local.toml" <<'EOF'
 enable_android = false
-disabled_mise_tools = ["rust"]
+bootstrap_packages = false
+disabled_mise_tools = []
 [extra_mise_tools]
 "npm:@google/gemini-cli" = "latest"
+[aws]
+profiles = []
+[home]
+nas_ssh = ""
+nas_nfs = ""
+[shell]
+enable_starship = false
 [scriptEnv]
 CODEX_INSTALLER_USE_RELEASES_OPENAI_COM = "0"
 EOF
@@ -92,13 +105,19 @@ with open(sys.argv[1], 'rb') as f:
     config = tomllib.load(f)
 extra = {'npm:@google/gemini-cli': 'latest'}
 assert config['data']['enable_android'] is False
-assert config['data']['disabled_mise_tools'] == ['rust']
+assert config['data']['bootstrap_packages'] is False
+assert config['data'].get('disabled_mise_tools', []) == []
 assert config['data']['extra_mise_tools'] == extra
 assert 'npm:obsolete-tool' not in config['data']['extra_mise_tools']
+assert config['data']['aws']['profiles'] == []
+assert config['data']['home']['nas_ssh'] == ''
+assert config['data']['home']['nas_nfs'] == ''
+assert config['data']['shell']['enable_starship'] is False
+assert config['data']['versions']['go'] == 'latest'
 assert config['scriptEnv'] == {'CODEX_INSTALLER_USE_RELEASES_OPENAI_COM': '0'}
 with open(sys.argv[2], 'rb') as f:
     tools = tomllib.load(f)['tools']
-assert 'rust' not in tools
+assert tools['rust'] == '1.85.0'
 assert tools['flutter'] == '3.35.3'
 assert all(tools[k] == v for k, v in extra.items())
 PY
@@ -122,5 +141,6 @@ PY
 fi
 
 bash "$source_dir/test-ai-clis.sh"
+bash "$source_dir/test-bootstrap.sh"
 
 echo "All checks passed."

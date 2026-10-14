@@ -49,3 +49,7 @@
 [https]
 	proxy = http://127.0.0.1:7897
 {{- end }}
+
+# Keep machine-specific credential helpers and private Git settings out of chezmoi.
+[include]
+	path = ~/.gitconfig.local

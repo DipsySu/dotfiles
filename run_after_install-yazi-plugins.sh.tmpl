@@ -1,0 +1,67 @@
+#!/bin/bash
+# 每次 apply 时检查 Yazi 插件是否完整；只在清单变更或插件缺失时访问网络。
+set -euo pipefail
+
+if ! command -v ya >/dev/null 2>&1; then
+    echo "[INFO] 未检测到 yazi (ya)，稍后 apply 会再次检查插件"
+    exit 0
+fi
+
+yazi_config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/yazi"
+manifest="$yazi_config_dir/package.toml"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/chezmoi"
+stamp="$state_dir/yazi-plugins.sha256"
+plugin_root="$yazi_config_dir/plugins"
+
+if [ ! -f "$manifest" ]; then
+    echo "[ERROR] 找不到 Yazi 插件清单：$manifest" >&2
+    exit 1
+fi
+
+if command -v shasum >/dev/null 2>&1; then
+    manifest_hash="$(shasum -a 256 "$manifest" | awk '{print $1}')"
+elif command -v sha256sum >/dev/null 2>&1; then
+    manifest_hash="$(sha256sum "$manifest" | awk '{print $1}')"
+else
+    echo "[ERROR] 找不到 sha256 工具" >&2
+    exit 1
+fi
+
+plugin_uses() {
+    awk -F'"' '
+        /^\[\[plugin\.deps\]\]/ { in_plugin_deps = 1; next }
+        /^\[/ { in_plugin_deps = 0 }
+        in_plugin_deps && /^[[:space:]]*use[[:space:]]*=/ { print $2 }
+    ' "$manifest"
+}
+
+plugins_are_complete() {
+    local plugin_use plugin_name
+    while IFS= read -r plugin_use; do
+        plugin_name="${plugin_use##*:}"
+        if [ "$plugin_name" = "$plugin_use" ]; then
+            plugin_name="${plugin_use##*/}"
+        fi
+        plugin_name="${plugin_name%.yazi}"
+        [ -d "$plugin_root/${plugin_name}.yazi" ] || return 1
+    done < <(plugin_uses)
+}
+
+if plugins_are_complete && [ -f "$stamp" ] && [ "$(cat "$stamp")" = "$manifest_hash" ]; then
+    echo "[INFO] Yazi 插件已完整，跳过安装"
+    exit 0
+fi
+
+echo "[INFO] 安装或修复 Yazi 插件..."
+ya pkg install
+
+if ! plugins_are_complete; then
+    echo "[ERROR] Yazi 安装后插件目录仍不完整" >&2
+    exit 1
+fi
+
+mkdir -p "$state_dir"
+stamp_tmp="$(mktemp "$state_dir/yazi-plugins.XXXXXX")"
+printf '%s\n' "$manifest_hash" >"$stamp_tmp"
+mv -f "$stamp_tmp" "$stamp"
+echo "[INFO] Yazi 插件已就绪"

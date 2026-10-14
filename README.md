@@ -174,6 +174,19 @@ disabled_mise_tools = ["rust"]
 
 未设置这些选项时保持默认工具链。禁用 Android 会跳过其 shell 模块和初始化安装项；已经存在的 `~/.zsh/android.zsh` 需先备份移出该目录。未由 mise 管理的 Rust 仍可通过 `~/.cargo/bin` 使用。
 
+`local.toml` 的显式值优先，包括 `false`、空字符串和空数组。`extra_mise_tools` 会整体替换旧配置中的同名表，删除的工具不会在下次初始化时重新出现。
+
+已经配置好的机器可以在 `local.toml` 的顶层添加 `bootstrap_packages = false`，跳过整套 Homebrew 和 mise 的首次安装任务。新机器默认启用该任务；启用时 Homebrew 只补齐缺失的软件，不升级已有软件。必要安装步骤失败会返回错误，下次 apply 可以重试。原生 CLI 的缺失检查仍会执行。
+
+Yazi 插件会在每次 apply 时检查：未安装 `ya` 时跳过，安装后自动补齐；只有清单变化、插件目录缺失或上次安装失败时才运行安装命令。
+
+### 保留机器私有设置
+
+- `~/.zshrc.local`：在所有公共 shell 配置之后加载，适合 iTerm2 Shell Integration、个人快捷键和本机路径。
+- `~/.gitconfig.local`：由主 Git 配置 include，适合 GitHub credential helper 和其他机器私有 Git 设置。
+
+这两个文件不纳入仓库，也不会被 apply 覆盖。把已有自定义内容移入对应文件后，再应用模板。
+
 如果 Codex 主下载站连接失败，可以在该机器的 `local.toml` 中添加官方安装器支持的下载源选项；这只影响缺失时的安装：
 
 ```toml
