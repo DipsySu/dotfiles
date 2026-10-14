@@ -25,7 +25,7 @@ myhelp() {
     print -P "  ${C_CMD}mac_mem${C_R}       ${C_DESC}— 内存详细 + 内存压力 + 疑似泄漏进程${C_R}"
     print -P "  ${C_CMD}mac_docker${C_R}    ${C_DESC}— Docker 状态、容器、镜像、清理建议${C_R}"
     print -P "  ${C_CMD}mac_purge${C_R}     ${C_DESC}— 清理内存缓存 (sudo purge)${C_R}"
-    print -P "  ${C_CMD}mac_clean${C_R}     ${C_DESC}— 清理用户/系统缓存、TM 快照（破坏性，先看代码）${C_R}"
+    print -P "  ${C_CMD}mac_clean${C_R}     ${C_DESC}— 只读预览缓存占用、快照和 Docker 空间，不删除数据${C_R}"
     print -P "  ${C_CMD}mac_monitor${C_R}   ${C_DESC}— 实时监控大屏 (Ctrl+C 退出)${C_R}"
     print -P ""
 {{- $profiles := dig "aws" "profiles" (list) . }}
@@ -55,7 +55,7 @@ myhelp() {
     print -P "  ${C_CMD}dps${C_R}           ${C_DESC}— 简洁的运行中容器列表${C_R}"
     print -P "  ${C_CMD}dpsa${C_R}          ${C_DESC}— 含已停止的所有容器${C_R}"
     print -P "  ${C_CMD}dlogs <name>${C_R}  ${C_DESC}— 跟随日志（最近 100 行）${C_R}"
-    print -P "  ${C_CMD}dprune${C_R}        ${C_DESC}— 清理所有未使用容器/镜像/卷${C_R}"
+    print -P "  ${C_CMD}dprune${C_R}        ${C_DESC}— 只读查看 Docker 空间明细，不删除容器或卷${C_R}"
     print -P ""
     print -P "${C_GROUP}🌐 网络${C_R}"
     print -P "  ${C_CMD}ports${C_R}         ${C_DESC}— 列出本地监听端口${C_R}"

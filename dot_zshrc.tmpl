@@ -46,11 +46,6 @@ if [[ -n "$HOMEBREW_PREFIX" && -r "$HOMEBREW_PREFIX/opt/zinit/zinit.zsh" ]]; the
     _zinit_script="$HOMEBREW_PREFIX/opt/zinit/zinit.zsh"
 elif [[ -r "${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git/zinit.zsh" ]]; then
     _zinit_script="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git/zinit.zsh"
-elif command -v git >/dev/null 2>&1; then
-    _zinit_home="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
-    mkdir -p "${_zinit_home:h}"
-    git clone --depth=1 https://github.com/zdharma-continuum/zinit.git "$_zinit_home" >/dev/null 2>&1 && _zinit_script="$_zinit_home/zinit.zsh"
-    unset _zinit_home
 fi
 
 if [[ -n "$_zinit_script" ]]; then

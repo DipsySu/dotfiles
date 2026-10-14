@@ -51,7 +51,8 @@ alias brewup='brew update && brew upgrade && brew cleanup -s && brew doctor'
 alias dps='docker ps --format "table {{ "{{" }}.Names{{ "}}" }}\t{{ "{{" }}.Status{{ "}}" }}\t{{ "{{" }}.Ports{{ "}}" }}"'
 alias dpsa='docker ps -a --format "table {{ "{{" }}.Names{{ "}}" }}\t{{ "{{" }}.Status{{ "}}" }}\t{{ "{{" }}.Ports{{ "}}" }}"'
 alias dlogs='docker logs -f --tail 100'
-alias dprune='docker system prune -af --volumes'
+# Keep the familiar entry point as a preview; removal needs a separate decision.
+alias dprune='docker system df -v'
 
 # --- zsh ---
 alias reload='source ~/.zshrc'

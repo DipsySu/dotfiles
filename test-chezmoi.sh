@@ -3,6 +3,11 @@ set -euo pipefail
 
 echo "Testing chezmoi dotfiles..."
 
+if ! command -v python3 >/dev/null 2>&1 || ! python3 -c 'import sys; assert sys.version_info >= (3, 11); import tomllib' >/dev/null 2>&1; then
+    echo "Python 3.11+ is required; TOML and semantic checks must not be skipped." >&2
+    exit 1
+fi
+
 if ! command -v chezmoi >/dev/null 2>&1; then
     echo "chezmoi not found"
     exit 1
@@ -63,7 +68,7 @@ if command -v ruby >/dev/null 2>&1; then
 else
     echo "skip: ruby not found, Brewfile syntax not checked"
 fi
-if command -v python3 >/dev/null 2>&1; then
+{
     for f in "$tmpdir/mise-config.toml" "$tmpdir/yazi-keymap.toml"; do
         python3 -c "import tomllib,sys; tomllib.load(open(sys.argv[1],'rb'))" "$f"
     done
@@ -73,7 +78,7 @@ with open(sys.argv[1], 'rb') as f:
     config = tomllib.load(f)
 assert config['settings']['upgrade']['auto_prune'] is False
 PY
-fi
+}
 
 # Machine overrides must survive init without becoming nested in another table.
 fixture_home="$tmpdir/home"
@@ -104,7 +109,7 @@ HOME="$fixture_home" chezmoi --source "$source_dir" --config "$tmpdir/initialize
     execute-template --file "$source_dir/run_once_install-packages.sh.tmpl" > "$tmpdir/install-override.sh"
 bash -n "$tmpdir/install-override.sh"
 grep -qx '.zsh/android.zsh' "$tmpdir/ignore-override"
-if command -v python3 >/dev/null 2>&1; then
+{
     python3 - "$tmpdir/initialized.toml" "$tmpdir/mise-override.toml" <<'PY'
 import sys, tomllib
 with open(sys.argv[1], 'rb') as f:
@@ -127,7 +132,7 @@ assert tools['rust'] == '1.85.0'
 assert tools['flutter'] == '3.35.3'
 assert all(tools[k] == v for k, v in extra.items())
 PY
-fi
+}
 
 # An explicit empty local map must remove every fallback tool from the existing config.
 fixture_empty_home="$tmpdir/home-empty"
@@ -137,16 +142,20 @@ cat > "$fixture_empty_home/.config/chezmoi/local.toml" <<'EOF'
 EOF
 HOME="$fixture_empty_home" chezmoi --source "$source_dir" --config "$config_file" \
     execute-template --init --file "$source_dir/.chezmoi.toml.tmpl" > "$tmpdir/initialized-empty-extra.toml"
-if command -v python3 >/dev/null 2>&1; then
+{
     python3 - "$tmpdir/initialized-empty-extra.toml" <<'PY'
 import sys, tomllib
 with open(sys.argv[1], 'rb') as f:
     config = tomllib.load(f)
 assert 'extra_mise_tools' not in config['data']
 PY
-fi
+}
 
 bash "$source_dir/test-ai-clis.sh"
 bash "$source_dir/test-bootstrap.sh"
+bash "$source_dir/test-yazi.sh"
+bash "$source_dir/test-shell-functions.sh"
+bash "$source_dir/test-git-shell.sh"
+bash "$source_dir/test-platforms.sh"
 
 echo "All checks passed."

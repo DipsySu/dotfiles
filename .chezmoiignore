@@ -1,10 +1,14 @@
 README.md
 TIPS.md
-profile.yaml
+local.toml.example
 quick-install.sh
 test-chezmoi.sh
 test-ai-clis.sh
 test-bootstrap.sh
+test-git-shell.sh
+test-shell-functions.sh
+test-yazi.sh
+test-platforms.sh
 scripts/
 .vscode/
 code run_once_after_cleanup-dock.sh.tmpl

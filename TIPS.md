@@ -1,266 +1,120 @@
-# Dotfiles 使用指南 & 备忘录 (TIPS.md)
+# Dotfiles 使用备忘
 
-本文档记录了本套 Dotfiles 的架构逻辑、常用命令以及在新机器上的恢复流程。
+## 配置来源
 
-## 1. 核心架构
+- 仓库 `.chezmoi.toml.tmpl` 定义配置结构。
+- 私有 `~/.config/chezmoi/local.toml` 保存机器选项，完整格式见 `local.toml.example`。
+- `chezmoi init` 读取私有文件，生成 `~/.config/chezmoi/chezmoi.toml`。
+- `chezmoi apply` 把模板渲染到目标文件。
 
-*   **配置管理**: [Chezmoi](https://www.chezmoi.io/) - 负责同步 `.zshrc`, `.gitconfig`、Git hooks 以及 Mise 的全局配置。
-*   **运行时管理**: [Mise](https://mise.jdx.dev/) - 替代 nvm, pyenv, rbenv。负责安装 Node, Python, Java, Go。
-*   **包管理**: Homebrew - 负责安装 CLI 工具 (git, fzf, starship 等)。
-*   **Shell 插件**: Zinit - 替代完整 Oh My Zsh，启动更轻。
+不要直接改生成后的 mise 全局配置来保存长期设置：下一次 apply 会按模板覆盖。应修改 `local.toml`，再 `chezmoi init`、查看 diff、apply。
 
----
+## 机器初始化
 
-## 2. 新机器初始化 (Bootstrap)
+已有 chezmoi 时运行 `chezmoi init DipsySu`。完整的下载和初次安装步骤见 README。
 
-在全新的 macOS 或 WSL (Ubuntu) 上，只需执行以下步骤：
+要避免提问，先填写完整 `local.toml.example` 并保存为私有配置；仅填写部分字段时，缺少的字段仍可能提问。
 
-### 步骤 A: 一键安装 (推荐方式)
-
-```bash
-# 方法一：使用一键安装脚本 (自动处理 PATH)
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/DipsySu/dotfiles/master/quick-install.sh)"
-
-# 方法二：手动安装 (需要手动设置 PATH)
-sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply DipsySu
-export PATH="$HOME/.local/bin:$PATH"  # 临时设置，重启终端后生效
-source ~/.zshrc
-```
-
-**推荐使用方法一**，它会自动处理所有 PATH 设置问题。
-
-该命令会自动完成以下工作：
-1. 安装 `chezmoi` 二进制文件到 `~/.local/bin`
-2. 拉取你的 Dotfiles 仓库
-3. 提示你输入配置变量（Git用户名、邮箱等）
-4. 将配置文件映射到 `~` 目录
-5. **自动运行 `run_once_install-packages.sh` 脚本**，安装：
-   - Homebrew 包管理器
-   - 开发工具 (starship, eza, zoxide 等)
-   - Zinit 和 zsh 插件
-   - 运行时环境 (Node.js, Python, Go, Java)
-   - Codex / Claude Code / Gemini CLI
-
-### 步骤 B: 跳过交互式配置 (可选)
-
-如果你想跳过交互式配置，可以预先创建配置文件：
-
-```bash
-# 1. 创建配置目录
-mkdir -p ~/.config/chezmoi
-
-# 2. 创建静态配置文件
-cat > ~/.config/chezmoi/chezmoi.yaml << 'EOF'
-data:
-  name: "Dipsy"
-  email: "you@example.com"
-  versions:
-    go: "latest"
-    java: "temurin-21"
-    node: "lts"
-    python: "3.11"
-    flutter: "3.35.3"
-  aws:
-    codeartifact_domain: ""        # 只在 local.toml 里填
-    profiles: []                   # 见 TIPS.md「私有变量 local.toml」
-  home:
-    tailscale_path: ""
-    ssh_host: "home-pc"
-    pc_ip: "192.168.1.100"
-    nas_ssh: ""            # user@host，留空则不生成 sshnas 别名
-    nas_nfs: ""            # host:/export，留空则不生成 mountnas 别名
-  wsl:
-    win_home: ""           # WSL 填 /mnt/c/Users/<name>，macOS 留空
-  shell:
-    enable_starship: true
-    enable_zoxide: true
-    enable_eza: true
-EOF
-
-# 3. 然后运行 chezmoi
-sh -c "$(curl -fsLS get.chezmoi.io)" -- -b $HOME/.local/bin init --apply DipsySu
-```
-
----
-
-## 3. Mise 使用指南 (运行时管理)
-
-Mise 统一管理所有语言版本。配置文件的优先级：`Shell 临时` > `项目级 (.mise.toml)` > `全局 (~/.config/mise/config.toml)`。
-
-### 常用场景
-
-| 场景 | NVM/Pyenv 操作 | **Mise 操作 (推荐)** | 备注 |
-| :--- | :--- | :--- | :--- |
-| **临时切换** (当前窗口) | `nvm use 20` | `mise use node@20` | 仅当前 Session 有效 |
-| **设置全局默认** | `nvm alias default 20` | `mise use -g node@20` | **修改后需同步 Chezmoi** |
-| **项目级锁定** | 创建 `.nvmrc` | `mise use node@16` | 在项目目录下运行，会自动生成 `.mise.toml` |
-| **安装新版本** | `nvm install 22` | `mise install node@22` | 仅安装，不切换 |
-| **列出已安装** | `nvm ls` | `mise ls node` | |
-
-### 修改全局版本的正确姿势
-如果你想把全局 Java 从 17 升级到 21：
-
-1.  修改 Chezmoi 中的源文件 (推荐):
-    ```bash
-    chezmoi edit ~/.config/mise/config.toml
-    # 将 java = "temurin-17" 改为 "temurin-21"
-    ```
-2.  应用更改:
-    ```bash
-    chezmoi apply
-    # Mise 会自动检测并在后台安装 Java 21
-    ```
-
----
-
-## 4. Chezmoi 日常维护流程
-
-### 修改配置 (Edit)
-想修改 `.zshrc` 或 `.gitconfig` 时：
-```bash
-chezmoi edit ~/.zshrc
-# 保存关闭后，运行：
+```sh
+chmod 600 ~/.config/chezmoi/local.toml
+chezmoi init
+chezmoi diff
 chezmoi apply
 ```
 
-### 添加新文件 (Add)
-想把一个新的配置文件纳入管理 (例如 `~/.vimrc`)：
-```bash
-chezmoi add ~/.vimrc
-```
+已有机器通常设 `bootstrap_packages = false`；它只跳过 Homebrew / mise 的整套初始化，原生 CLI 和 Yazi 的缺失检查仍会执行。
 
-### 同步到远程 (Push)
-当你修改了配置，或者升级了 Mise 全局版本后，记得推送到 GitHub：
-```bash
-cd ~/.local/share/chezmoi
-git add .
-git commit -m "chore: update configs"
-git push
-```
+## mise 运行时
 
-### 从远程拉取 (Pull)
-在另一台机器上获取最新配置：
-```bash
-chezmoi update
-```
+| 目的 | 命令 | 是否写配置 |
+| --- | --- | --- |
+| 当前 shell 临时选择 | `mise shell node@24` | 否，需要 shell activation |
+| 单次命令选择版本 | `mise exec node@24 -- node --version` | 否 |
+| 项目选择版本 | `mise use node@24` | 是，在项目目录运行 |
+| 全局选择版本 | `mise use -g node@24` | 是；长期设置应同步到私有 `local.toml` |
+| 安装指定版本 | `mise install node@24` | 不改版本声明 |
 
----
+`mise use` 会写配置，不是仅对当前窗口临时生效。可参见 [mise use 文档](https://mise.jdx.dev/cli/use.html)。版本缺失时，上述选择命令可能触发安装。
 
-## 5. 软件包管理 (Homebrew)
-
-本配置使用 `Brewfile` 管理系统软件。
-
-*   **添加软件**: 编辑 `~/.local/share/chezmoi/Brewfile`。
-*   **生效**: 
-    *   等待下次 `chezmoi apply` (如果脚本包含自动运行逻辑)
-    *   或者手动运行 `brew bundle --file=~/.local/share/chezmoi/Brewfile`
-
----
-
-## 7. 模板变量管理
-
-### 配置文件位置
-- **交互式配置**: `.chezmoi.toml.tmpl` - 首次运行时会提示输入各种配置值
-- **静态配置**: `~/.config/chezmoi/chezmoi.yaml` - 直接设置配置值，跳过交互
-
-### 私有变量 local.toml
-
-邮箱、AWS profile、家庭网络地址这类不想进仓库的值，放在 `~/.config/chezmoi/local.toml`（不进仓库）。
-`chezmoi init` 渲染配置时会先读它：文件里有的键直接用，没有的才交互提问。结构与生成的 `[data]` 完全一致：
+例如修改 Java 的长期声明：
 
 ```toml
-name  = "Dipsy"
-email = "you@example.com"
-
-[aws]
-codeartifact_domain = "my-domain"
-
-[[aws.profiles]]
-name   = "aws-main"        # 函数名 = profile 名，例如 aws-main
-region = "us-east-1"
-sso    = true              # 切换前自动 aws sso login
-
-[[aws.profiles]]
-name         = "aws-artifacts"
-region       = "eu-west-1"
-codeartifact = true        # 切换时顺带取 CodeArtifact token
-
-[home]
-tailscale_path = ""        # 留空自动检测
-ssh_host = "home-pc"
-pc_ip    = "192.168.1.100"
-nas_ssh  = "user@192.168.1.2"
-nas_nfs  = "192.168.1.2:/volume1/share"
-
-[wsl]
-win_home = "/mnt/c/Users/<name>"   # macOS 留空
+# ~/.config/chezmoi/local.toml
+[versions]
+java = "temurin-21"
 ```
 
-新机器流程：先把这个文件放到 `~/.config/chezmoi/local.toml`，再跑 `chezmoi init --apply DipsySu`，全程不会提问。
-
-### 支持的模板变量
-
-| 变量类别 | 变量名 | 默认值 | 说明 |
-|---------|--------|--------|------|
-| **Git** | `name` | "Dipsy" | Git 用户名 |
-| | `email` | "your.email@example.com" | Git 邮箱 |
-| **工具版本** | `versions.go` | "latest" | Go 版本 |
-| | `versions.java` | "temurin-21" | Java 版本 |
-| | `versions.node` | "lts" | Node.js 版本 |
-| | `versions.python` | "3.11" | Python 版本 |
-| | `versions.flutter` | "3.35.3" | Flutter 版本 |
-| **AWS** | `aws.codeartifact_domain` | "" | CodeArtifact 域名，只在 local.toml 里填 |
-| | `aws.profiles` | [] | profile 列表，每项 name / region / sso / codeartifact；为空不生成切换函数 |
-| **家居自动化** | `home.tailscale_path` | "" | Tailscale 路径，留空自动检测 |
-| | `home.ssh_host` | "home-pc" | SSH 主机别名 |
-| | `home.pc_ip` | "192.168.1.100" | 家用电脑 IP |
-| | `home.nas_ssh` | "" | NAS SSH 目标 user@host，留空不生成 sshnas |
-| | `home.nas_nfs` | "" | NAS NFS 导出 host:/path，留空不生成 mountnas |
-| **WSL** | `wsl.win_home` | "" | WSL 下的 Windows 用户目录 /mnt/c/Users/<name>，macOS 留空 |
-| **Shell** | `shell.enable_starship` | true | 启用 Starship 提示符 |
-| | `shell.enable_zoxide` | true | 启用 Zoxide (智能 cd) |
-| | `shell.enable_eza` | true | 启用 Eza (更好的 ls) |
-
-## 🔧 PATH 自动管理
-
-### 为什么不需要手动设置 PATH？
-
-1. **永久设置**: `.zshrc` 模板中已包含 PATH 设置代码
-2. **自动检查**: 每次启动 shell 时自动检查并添加 `~/.local/bin`
-3. **一次设置**: 安装完成后重启终端，PATH 永久生效
-
-### PATH 设置代码 (在 .zshrc 中)
-```bash
-# zsh path array automatically de-duplicates entries.
-typeset -U path
-path=("$HOME/.local/bin" $path)
+```sh
+chezmoi init
+chezmoi diff
+chezmoi apply
+# 如果需要补装，请显式运行：
+mise install java@temurin-21
 ```
 
-### 如果 PATH 有问题
-```bash
-# 检查 PATH
-echo $PATH | grep -o "$HOME/.local/bin"
+普通 apply 不保证后台安装新声明的运行时。`latest` / `lts` / `3.11` 也不保证跨机器解析成同一版本；需要一致时填写完整版本号。
 
-# 手动重新加载配置
-source ~/.zshrc
+### 旧版本与 http-tarballs
 
-# 或重启终端
-exec zsh
+全局配置使用 `upgrade.auto_prune = false`，避免升级时安排旧版本自动删除。过去已经存在的延迟删除计划不会因此取消，维护前应检查 mise 状态目录中的 `tool-purgatory.json`；不要把普通查询误认为绝无副作用。
+
+`http-tarballs` 是 HTTP 后端的共享解压存储，可能是运行时的实际安装目录。Flutter 的 `installs/flutter/<版本>` 可以是指向它的软链接。不能直接整目录删除；清理审核应核对所有安装的真实目标并验证工具可运行。详见 [官方 HTTP 后端文档](https://mise.jdx.dev/dev-tools/backends/http.html)。
+
+## Homebrew 与 Zinit
+
+仓库清单是 `~/.local/share/chezmoi/dot_Brewfile`，apply 后的目标是 `~/.Brewfile`。已有机器增加包后，可显式补装：
+
+```sh
+chezmoi apply
+brew bundle --no-upgrade --file="$HOME/.Brewfile"
 ```
 
-## 8. 常见问题 (FAQ)
+这个显式命令使用完整 Brewfile。关闭 Android 的机器应只安装所需包，或使用初始化脚本中的 Android 过滤逻辑，避免把已选择跳过的软件又装回来。
 
-*   **Q: `chezmoi` 命令找不到？**
-    *   A: 确保使用了 `-b $HOME/.local/bin` 参数安装，并且 `~/.local/bin` 在你的 `PATH` 中。如果刚安装完，尝试重启终端或运行 `export PATH="$HOME/.local/bin:$PATH"`。
+Zinit 管理器缺失时，终端启动只跳过加载。需要时运行 `brew install zinit`。插件仍按 Zinit 配置加载。
 
-*   **Q: 安装时提示权限被拒绝？**
-    *   A: 使用 `-b $HOME/.local/bin` 参数将 chezmoi 安装到用户目录，避免需要 sudo 权限。
+## Git、代理和本机定制
 
-*   **Q: Mise 切换版本没生效？**
-    *   A: 检查是否开启了 `mise activate zsh` (在 `.zshrc` 中)。运行 `mise doctor` 查看诊断信息。
+`~/.gitconfig.local` 最后 include，`~/.zshrc.local` 最后 source。私有凭据 helper、iTerm2 集成和本机路径放在这些文件中；已有内容不会被 apply 覆盖。
 
-*   **Q: 如何在不同机器上使用不同的配置？**
-    *   A: 编辑 `~/.config/chezmoi/chezmoi.yaml` 文件，或者删除该文件重新运行 `chezmoi init` 进行交互式配置。
+全局不再设置 `core.hooksPath`，项目的普通 hooks 和 worktree hooks 按 Git 的规则执行。已有 `~/.git-hooks` 文件保留，但不再自动接管每个项目。若项目确实需要调用可选的 `~/.git-hooks/commit-msg` 署名过滤器，应从项目自己的 hook 明确调用；该过滤器不转调其他 hook，不删除人类合作者 trailer。使用 LFS 的项目应自行确认项目中的 `git lfs install --local` hooks 已配置。
 
-*   **Q: 如何备份当前配置？**
-    *   A: 安装脚本会自动备份到 `~/.dotfiles_backup_<时间戳>` 目录。你也可以手动备份重要配置文件。
+WSL 不自动启用 `127.0.0.1:7897`。需要本地代理时：
+
+```zsh
+WSL_PROXY_PORT=7890 proxy_on
+proxy_off
+```
+
+如需 Git 独立代理，写入私有 `.gitconfig.local`：
+
+```gitconfig
+[http]
+    proxy = http://127.0.0.1:7890
+```
+
+Grok 的代理只在本地端口监听时对该进程启用，可以用 `GROK_PROXY_PORT=7890 grok login` 临时选择端口。
+
+## 常用辅助命令
+
+- `mac_clean`：预览空间，完全不执行删除。
+- `dprune`：显示 Docker 空间明细，不删除容器、镜像或数据卷。
+- `mac_check`：按系统报告的实际内存页大小计算占用。
+- `gpullall`：并行拉取当前目录下的 Git 仓库；支持含特殊字符的目录和 worktree，拉取失败返回非零。
+- AWS profile 切换函数：获取凭据等步骤全部成功后才切换环境，失败保留原环境。
+- 家庭网络函数：只在 Tailscale JSON 状态为 `Running` 时继续；启动中有限重试，未登录时明确失败。
+
+## 同步与恢复
+
+```sh
+cd ~/.local/share/chezmoi
+bash test-chezmoi.sh
+git diff
+# 按需 git add / commit / push
+```
+
+另一台机器使用 `chezmoi update` 拉取并应用。跨平台测试使用临时目录、mock 安装器和固定平台数据，不会清理真实数据。
+
+覆盖前备份由 `run_once_before_00-backup-config.sh.tmpl` 负责，日志会打印保存位置，目录保留原来的相对结构并限制为私有访问。它按 run_once 记录执行，不是每次 apply 的持续备份。重要批量变更前，应额外备份目标配置和机器私有文件。
+
+恢复时先查看备份内容，只还原需要的文件，再将需要长期保留的设置写回模板或私有 `local.toml` / `.zshrc.local` / `.gitconfig.local`。不要用恢复配置的操作删除运行时、项目、应用数据或 Docker 卷。

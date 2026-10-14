@@ -199,17 +199,28 @@ ai_cli_install_grok() {
 }
 
 ai_cli_add_grok_links() {
-    local name
+    local name destination target
     ai_cli_is_entry "$AI_CLI_GROK_BIN/grok" || return 0
     mkdir -p "$AI_CLI_LOCAL_BIN" || return 1
+    # Repair only a missing entry or a broken symlink.  A user-provided file,
+    # directory, or symlink which already resolves is left untouched.
     for name in agent; do
-        if [ ! -e "$AI_CLI_GROK_BIN/$name" ] && [ ! -L "$AI_CLI_GROK_BIN/$name" ]; then
-            ln -s grok "$AI_CLI_GROK_BIN/$name" || return 1
+        destination="$AI_CLI_GROK_BIN/$name"
+        if [ -L "$destination" ] && [ ! -e "$destination" ]; then
+            rm "$destination" || return 1
+        fi
+        if [ ! -e "$destination" ] && [ ! -L "$destination" ]; then
+            ln -s grok "$destination" || return 1
         fi
     done
     for name in grok agent; do
-        if [ ! -e "$AI_CLI_LOCAL_BIN/$name" ] && [ ! -L "$AI_CLI_LOCAL_BIN/$name" ]; then
-            ln -s "$AI_CLI_GROK_BIN/$name" "$AI_CLI_LOCAL_BIN/$name" || return 1
+        destination="$AI_CLI_LOCAL_BIN/$name"
+        target="$AI_CLI_GROK_BIN/$name"
+        if [ -L "$destination" ] && [ ! -e "$destination" ]; then
+            rm "$destination" || return 1
+        fi
+        if [ ! -e "$destination" ] && [ ! -L "$destination" ]; then
+            ln -s "$target" "$destination" || return 1
         fi
     done
 }

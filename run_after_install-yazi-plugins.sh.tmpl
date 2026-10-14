@@ -43,7 +43,9 @@ plugins_are_complete() {
             plugin_name="${plugin_use##*/}"
         fi
         plugin_name="${plugin_name%.yazi}"
-        [ -d "$plugin_root/${plugin_name}.yazi" ] || return 1
+        # A directory alone can be left behind by an interrupted install.  Yazi
+        # loads each plugin through main.lua, so require the actual entrypoint.
+        [ -s "$plugin_root/${plugin_name}.yazi/main.lua" ] || return 1
     done < <(plugin_uses)
 }
 

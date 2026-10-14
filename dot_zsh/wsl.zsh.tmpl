@@ -1,20 +1,25 @@
 {{- if and (eq .chezmoi.os "linux") (contains "microsoft" (lower .chezmoi.kernel.osrelease)) -}}
 # WSL 专属设置。此文件由 chezmoi 模板生成，只在 WSL 上存在。
 
-# Clash 代理（镜像网络模式，Windows 端监听 127.0.0.1:7897）
+# 手动启用本机代理。可在 ~/.zshrc.local 设置 WSL_PROXY_PORT 后调用 proxy_on。
 proxy_on() {
-    export http_proxy="http://127.0.0.1:7897"
-    export https_proxy="http://127.0.0.1:7897"
-    export all_proxy="socks5://127.0.0.1:7897"
+    local proxy_port=${WSL_PROXY_PORT:-7897}
+    if [[ "$proxy_port" != <1-65535> ]]; then
+        print -u2 -- 'WSL_PROXY_PORT 必须为 1–65535 的端口号'
+        return 1
+    fi
+    export http_proxy="http://127.0.0.1:$proxy_port"
+    export https_proxy="http://127.0.0.1:$proxy_port"
+    export all_proxy="socks5://127.0.0.1:$proxy_port"
     export no_proxy="localhost,127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
-    [[ "$1" == "--quiet" ]] || echo "🟢 proxy on (7897)"
+    [[ "${1:-}" == "--quiet" ]] || echo "🟢 proxy on ($proxy_port)"
+    return 0
 }
 proxy_off() {
     unset http_proxy https_proxy all_proxy no_proxy
     echo "🔴 proxy off"
 }
-# 默认开启，不输出提示
-proxy_on --quiet
+# 启动终端不改写调用者的代理环境；需要时显式执行 proxy_on。
 
 {{- if .wsl.win_home }}
 # claude-obsidian：Obsidian vault 在 Windows 侧

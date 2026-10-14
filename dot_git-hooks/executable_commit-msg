@@ -1,29 +1,40 @@
 #!/bin/sh
 
-msg_file=$1
+# Optional commit-msg hook.  It is deliberately not configured through a
+# global core.hooksPath: Git then continues to run every repository's own
+# hooks (including hooks in linked worktrees).  Install or symlink this hook
+# only in repositories where this narrow trailer cleanup is wanted.
 
+msg_file=${1:-}
 [ -n "$msg_file" ] && [ -f "$msg_file" ] || exit 0
 
-git_dir=$(git rev-parse --git-dir 2>/dev/null)
-if [ -n "$git_dir" ]; then
-  local_hook="$git_dir/hooks/commit-msg"
-  this_hook=$(cd "$(dirname "$0")" 2>/dev/null && pwd -P)/$(basename "$0")
-  repo_hook=$(cd "$(dirname "$local_hook")" 2>/dev/null && pwd -P)/$(basename "$local_hook")
-
-  if [ -x "$local_hook" ] && [ "$repo_hook" != "$this_hook" ]; then
-    "$local_hook" "$@"
-    status=$?
-    [ "$status" -eq 0 ] || exit "$status"
-  fi
-fi
-
-tmp_file="${msg_file}.no-co-authored-by.$$"
+tmp_file="${msg_file}.without-machine-coauthors.$$"
 
 awk '
+function machine_identity(value, name, email) {
+  name = value
+  sub(/^[[:space:]]*/, "", name)
+  sub(/[[:space:]]*<.*/, "", name)
+  sub(/[[:space:]]*$/, "", name)
+  name = tolower(name)
+
+  email = value
+  sub(/^.*</, "", email)
+  sub(/>.*/, "", email)
+  sub(/^[[:space:]]*/, "", email)
+  sub(/[[:space:]]*$/, "", email)
+  email = tolower(email)
+
+  return ((name == "codex" || name == "chatgpt" || name == "openai") && \
+          email == "noreply@openai.com") || \
+         ((name == "claude" || name == "anthropic") && \
+          email == "noreply@anthropic.com")
+}
 {
-  lower = tolower($0)
-  if (lower ~ /^[[:space:]]*co-authored-by:[[:space:]]*/) {
-    next
+  if ($0 ~ /^[[:space:]]*[Cc][Oo]-[Aa][Uu][Tt][Hh][Oo][Rr][Ee][Dd]-[Bb][Yy]:[[:space:]]*/) {
+    value = $0
+    sub(/^[[:space:]]*[Cc][Oo]-[Aa][Uu][Tt][Hh][Oo][Rr][Ee][Dd]-[Bb][Yy]:[[:space:]]*/, "", value)
+    if (machine_identity(value)) next
   }
   print
 }

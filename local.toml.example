@@ -1,0 +1,50 @@
+# 复制到 ~/.config/chezmoi/local.toml，修改后 chmod 600，再 chezmoi init && chezmoi apply。
+# 不要在此仓库示例里填写私有信息；local.toml 没有 [data] 外层。
+name = "Your Name"
+email = "your.email@example.com"
+enable_android = true
+# 新机器首次安装软件用 true；已有机器只同步配置可设为 false。
+bootstrap_packages = true
+# 只停止在全局配置声明这些工具，不卸载已有版本。
+disabled_mise_tools = []
+
+[versions]
+go = "latest"
+java = "temurin-21"
+node = "lts"
+python = "3.11"
+flutter = "3.35.3"
+rust = "1.85.0"
+
+# 此表整体替换旧值，留空表示不添加额外工具。
+[extra_mise_tools]
+# "npm:@google/gemini-cli" = "latest"
+
+[aws]
+codeartifact_domain = ""
+profiles = []
+# 使用以下示例时删除上面的 profiles = []。
+# [[aws.profiles]]
+# name = "aws-main"
+# region = "us-east-1"
+# sso = true
+# codeartifact = false
+
+[home]
+tailscale_path = ""
+ssh_host = "home-pc"
+pc_ip = "192.168.1.100"
+nas_ssh = ""
+nas_nfs = ""
+
+[wsl]
+win_home = ""
+
+[shell]
+enable_starship = true
+enable_zoxide = true
+enable_eza = true
+
+# 安装脚本环境变量；不属于 [data]，只从 local.toml 读取。
+[scriptEnv]
+# CODEX_INSTALLER_USE_RELEASES_OPENAI_COM = "0"

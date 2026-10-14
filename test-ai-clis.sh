@@ -76,6 +76,36 @@ PATH="$case1/mise:$PATH" run_helper "$case1"
 [ ! -s "$case1/curl.log" ] || fail 'existing entries downloaded an installer'
 assert_file "$case1/home/.grok/bin/agent"; assert_file "$case1/home/.local/bin/grok"; assert_file "$case1/home/.local/bin/agent"
 
+# Broken Grok links are repaired without downloading, while usable user-owned
+# entries (including a non-Grok symlink) remain untouched across repeat runs.
+case1b="$fixture_root/grok-links"; mkdir -p "$case1b/home/.local/bin" "$case1b/home/.grok/bin"
+make_fake_curl "$case1b"
+for x in codex claude agy; do printf '#!/bin/bash\n' > "$case1b/home/.local/bin/$x"; chmod +x "$case1b/home/.local/bin/$x"; done
+printf '#!/bin/bash\nexit 0\n' > "$case1b/home/.grok/bin/grok"; chmod +x "$case1b/home/.grok/bin/grok"
+ln -s nowhere "$case1b/home/.grok/bin/agent"
+ln -s nowhere "$case1b/home/.local/bin/grok"
+ln -s nowhere "$case1b/home/.local/bin/agent"
+run_helper "$case1b"
+[ "$(readlink "$case1b/home/.grok/bin/agent")" = grok ] || fail 'broken Grok agent link was not repaired'
+[ "$(readlink "$case1b/home/.local/bin/grok")" = "$case1b/home/.grok/bin/grok" ] || fail 'broken Grok shell link was not repaired'
+[ "$(readlink "$case1b/home/.local/bin/agent")" = "$case1b/home/.grok/bin/agent" ] || fail 'broken Grok agent shell link was not repaired'
+run_helper "$case1b"
+[ ! -s "$case1b/curl.log" ] || fail 'Grok link repair downloaded an installer'
+
+case1c="$fixture_root/grok-user-entries"; mkdir -p "$case1c/home/.local/bin" "$case1c/home/.grok/bin"
+make_fake_curl "$case1c"
+for x in codex claude agy; do printf '#!/bin/bash\n' > "$case1c/home/.local/bin/$x"; chmod +x "$case1c/home/.local/bin/$x"; done
+printf '#!/bin/bash\nexit 0\n' > "$case1c/home/.grok/bin/grok"; chmod +x "$case1c/home/.grok/bin/grok"
+printf '#!/bin/bash\nexit 0\n' > "$case1c/home/custom-agent"; chmod +x "$case1c/home/custom-agent"
+ln -s "$case1c/home/custom-agent" "$case1c/home/.grok/bin/agent"
+ln -s "$case1c/home/custom-agent" "$case1c/home/.local/bin/grok"
+ln -s "$case1c/home/custom-agent" "$case1c/home/.local/bin/agent"
+run_helper "$case1c"
+for link in "$case1c/home/.grok/bin/agent" "$case1c/home/.local/bin/grok" "$case1c/home/.local/bin/agent"; do
+    [ "$(readlink "$link")" = "$case1c/home/custom-agent" ] || fail "overwrote usable user entry $link"
+done
+[ ! -s "$case1c/curl.log" ] || fail 'usable user entries downloaded an installer'
+
 # Missing tools use only the documented URLs, protect profiles/settings, and create entries.
 case2="$fixture_root/missing"; mkdir -p "$case2/home/.claude"
 make_fake_curl "$case2"

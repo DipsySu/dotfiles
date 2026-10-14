@@ -25,7 +25,18 @@ export PATH="$HOME/.local/bin:$PATH"
 
 # 3. 安装 chezmoi 并初始化
 echo -e "${GREEN}📦 安装 Chezmoi...${NC}"
-sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin" init --apply DipsySu
+umask 077
+installer="$(mktemp "${TMPDIR:-/tmp}/chezmoi-install.XXXXXX")"
+trap 'rm -f "$installer"' EXIT HUP INT TERM
+if ! curl -fsSL --proto '=https' --tlsv1.2 https://get.chezmoi.io -o "$installer"; then
+    echo -e "${YELLOW}无法下载 Chezmoi 安装器，请检查网络后重试。${NC}" >&2
+    exit 1
+fi
+if [ ! -s "$installer" ]; then
+    echo -e "${YELLOW}Chezmoi 安装器为空，已停止安装。${NC}" >&2
+    exit 1
+fi
+/bin/sh "$installer" -b "$HOME/.local/bin" init --apply DipsySu
 
 echo -e "${BLUE}🎉 安装完成！${NC}"
 echo ""

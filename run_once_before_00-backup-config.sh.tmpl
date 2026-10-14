@@ -1,0 +1,55 @@
+#!/bin/bash
+# Preserve a small, explicit set of user configuration files before chezmoi
+# replaces them. This runs independently of bootstrap_packages.
+set -eu
+umask 077
+
+state_root="${XDG_STATE_HOME:-$HOME/.local/state}"
+backup_parent="$state_root/chezmoi-backups/pre-apply"
+timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+backup_dir="$backup_parent/$timestamp"
+suffix=0
+
+mkdir -p -m 700 "$backup_parent"
+while ! mkdir -m 700 "$backup_dir" 2>/dev/null; do
+    suffix=$((suffix + 1))
+    [ "$suffix" -le 100 ] || {
+        echo "[ERROR] cannot create a unique configuration backup directory under $backup_parent" >&2
+        exit 1
+    }
+    backup_dir="$backup_parent/${timestamp}-${suffix}"
+done
+
+backup_one() {
+    relative_path="$1"
+    source_path="$HOME/$relative_path"
+    destination_path="$backup_dir/$relative_path"
+
+    [ -e "$source_path" ] || [ -L "$source_path" ] || return 0
+    mkdir -p -m 700 "$(dirname "$destination_path")"
+    cp -pPR "$source_path" "$destination_path"
+}
+
+# Keep this allowlist small: do not copy runtime installations, caches, or
+# application data into a pre-apply backup.
+for config_path in \
+    .zshrc \
+    .zprofile \
+    .zshenv \
+    .zsh_aliases \
+    .zsh_functions \
+    .zsh/local.zsh \
+    .zsh/help.zsh \
+    .zsh/wsl.zsh \
+    .gitconfig \
+    .gitconfig.local \
+    .zshrc.local \
+    .git-hooks/commit-msg \
+    .config/git/config \
+    .config/mise/config.toml \
+    .config/starship.toml \
+    .config/yazi/package.toml; do
+    backup_one "$config_path"
+done
+
+echo "[INFO] existing configuration backed up to $backup_dir"
