@@ -105,6 +105,20 @@ CODEX_INSTALLER_USE_RELEASES_OPENAI_COM = "0"
 
 WSL 启动默认不设置代理。需要时手动执行 `proxy_on` / `proxy_off`；可在 `.zshrc.local` 设置 `WSL_PROXY_PORT=7890` 后调用 `proxy_on`。Git 的独立代理也应写在私有 `.gitconfig.local`。
 
+## SSH 与非交互命令
+
+使用 zsh 的远端账号可以直接执行 `ssh user@host 'codex --version'` 或 `ssh user@host 'go version'`。非交互 shell 从 `.zshenv` 设置 PATH：优先选择原生 CLI，保留继承的虚拟环境和项目工具路径，再加入 mise shims、已存在的 Homebrew 目录及系统目录。mise shims 遵循 `MISE_SHIMS_DIR`、`MISE_DATA_DIR` 和 `XDG_DATA_HOME` 的设置。
+
+非交互登录 shell 会在 `.zprofile` 中再次恢复该顺序，避免 macOS 的 `path_helper` 使系统 Java 入口抢先。初始化只使用 shell 内建命令设置路径，不加载 `.zshrc`、终端主题或插件，也不运行安装和更新。
+
+交互式登录仍使用原有配置，登录后可运行 `aiup` 更新独立安装的 CLI。`aiup` 是交互式 shell 函数；直接执行远程程序时使用对应 CLI 名称，例如 `ssh user@host 'codex exec ...'`。SSH 登录凭据与各 CLI 的账号登录需要分别配置。
+
+macOS 交互式 SSH 登录后可运行 `unlock`，按系统提示输入密码，解锁当前用户的 `~/Library/Keychains/login.keychain-db`；随后在同一会话中使用需要钥匙串的程序。新终端自动加载该指令，已打开的终端可先执行 `source ~/.zsh_functions`。
+
+已验证的 agy 1.5.9 兼容处理仅在 macOS 交互式 SSH 会话、且原生 `~/.local/bin/agy` 存在时生效：先执行 `unlock`，再执行 `agy`。包装器只让该命令进程及其子进程不携带 `SSH_TTY`、`SSH_CLIENT` 和 `SSH_CONNECTION`，不会修改父 shell 环境，也不会自动解锁或接收密码。`command agy` 可跳过包装器并恢复原有 SSH 行为；本机终端不会定义该包装器。其他 agy 版本未作兼容性承诺。
+
+同一 SSH 会话中，`agyp` 会以 `--dangerously-skip-permissions` 免逐项确认启动；`agypr` 在此基础上加上 `--continue`，继续最近一次会话。
+
 ## 数据保护与空间检查
 
 `mac_clean` 和 `dprune` 都只显示空间使用情况，不删除缓存、容器、卷或快照。清理前应核对具体目录、软链接和引用关系，再决定要删除什么。

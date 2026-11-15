@@ -17,3 +17,7 @@ fi
 # Claude Code 常用别名
 alias clp='claude --permission-mode bypassPermissions'
 alias clpr='claude --permission-mode bypassPermissions -r'
+
+# Antigravity CLI 常用别名：免逐项确认启动，或继续最近一次会话。
+alias agyp='agy --dangerously-skip-permissions'
+alias agypr='agy --dangerously-skip-permissions --continue'

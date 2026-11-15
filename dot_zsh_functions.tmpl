@@ -235,6 +235,20 @@ check_home() {
 
 # --- 家居自动化脚本结束 ---
 
+{{ if eq .chezmoi.os "darwin" -}}
+# 解锁当前用户的登录钥匙串；密码由系统交互提示。
+unlock() {
+    /usr/bin/security unlock-keychain "$HOME/Library/Keychains/login.keychain-db"
+}
+
+# agy 1.5.9 skips keyring storage when SSH markers are present.
+if [[ -o interactive && -x "$HOME/.local/bin/agy" && ( -n "${SSH_TTY:-}" || -n "${SSH_CLIENT:-}" || -n "${SSH_CONNECTION:-}" ) ]]; then
+    agy() {
+        /usr/bin/env -u SSH_TTY -u SSH_CLIENT -u SSH_CONNECTION "$HOME/.local/bin/agy" "$@"
+    }
+fi
+{{ end -}}
+
 # =================================================================
 # macOS 系统诊断函数
 # =================================================================

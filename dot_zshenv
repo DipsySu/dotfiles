@@ -1,2 +1,58 @@
 # Keep zshenv tiny: it is sourced by every zsh invocation, including scripts.
 [[ -r "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
+
+# Non-interactive SSH commands do not load .zshrc, so keep their tool lookup
+# self-contained and limited to shell builtins.  Interactive path setup remains
+# in the existing .zshrc hooks.
+if [[ ! -o interactive ]]; then
+    function _setup_noninteractive_tool_path() {
+        local -a native other shims brew system managed
+        local -a inherited
+        local dir mise_shims
+
+        native=()
+        for dir in "$HOME/.local/bin" "$HOME/.grok/bin"; do
+            [[ -d "$dir" ]] && native+=("$dir")
+        done
+
+        if [[ -n "${MISE_SHIMS_DIR-}" ]]; then
+            mise_shims="$MISE_SHIMS_DIR"
+        elif [[ -n "${MISE_DATA_DIR-}" ]]; then
+            mise_shims="$MISE_DATA_DIR/shims"
+        elif [[ -n "${XDG_DATA_HOME-}" ]]; then
+            mise_shims="$XDG_DATA_HOME/mise/shims"
+        else
+            mise_shims="$HOME/.local/share/mise/shims"
+        fi
+        shims=()
+        [[ -d "$mise_shims" ]] && shims+=("$mise_shims")
+
+        brew=()
+        for dir in \
+            /opt/homebrew/bin /opt/homebrew/sbin \
+            /usr/local/bin /usr/local/sbin \
+            /home/linuxbrew/.linuxbrew/bin /home/linuxbrew/.linuxbrew/sbin; do
+            [[ -d "$dir" ]] && brew+=("$dir")
+        done
+
+        managed=("${native[@]}" "${shims[@]}" "${brew[@]}")
+        inherited=("${path[@]}")
+        other=()
+        system=()
+        for dir in "${inherited[@]}"; do
+            [[ -z "$dir" ]] && continue
+            if (( ${managed[(Ie)$dir]} )); then
+                continue
+            fi
+            case "$dir" in
+                /usr/bin|/bin|/usr/sbin|/sbin) system+=("$dir") ;;
+                *) other+=("$dir") ;;
+            esac
+        done
+
+        typeset -gU path
+        path=("${native[@]}" "${other[@]}" "${shims[@]}" "${brew[@]}" "${system[@]}")
+    }
+
+    _setup_noninteractive_tool_path
+fi

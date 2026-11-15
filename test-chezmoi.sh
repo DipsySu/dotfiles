@@ -152,6 +152,7 @@ PY
 }
 
 bash "$source_dir/test-ai-clis.sh"
+bash "$source_dir/test-ssh-path.sh"
 bash "$source_dir/test-bootstrap.sh"
 bash "$source_dir/test-yazi.sh"
 bash "$source_dir/test-shell-functions.sh"

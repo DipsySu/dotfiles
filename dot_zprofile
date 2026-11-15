@@ -2,3 +2,9 @@
 # zsh automatically sources .zshrc for every interactive shell, including
 # login+interactive shells launched by Terminal.app, iTerm2, and VS Code.
 # Sourcing it manually makes the shell init twice and slows down startup.
+
+# macOS /etc/zprofile can run path_helper after .zshenv.  Reapply the minimal
+# non-interactive ordering without loading the interactive .zshrc hooks.
+if [[ ! -o interactive ]] && (( $+functions[_setup_noninteractive_tool_path] )); then
+    _setup_noninteractive_tool_path
+fi
